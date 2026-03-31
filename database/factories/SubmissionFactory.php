@@ -1,0 +1,43 @@
+<?php
+
+namespace Database\Factories;
+
+use App\Models\Submission;
+use Illuminate\Database\Eloquent\Factories\Factory;
+use App\Models\Event;
+
+/**
+ * @extends Factory<Submission>
+ */
+class SubmissionFactory extends Factory
+{
+    /**
+     * Define the model's default state.
+     *
+     * @return array<string, mixed>
+     */
+    public function definition(): array
+    {
+        $type = fake()->randomElement(['individual', 'team']);
+        $status = fake()->randomElement(['submitted', 'approved', 'rejected']);
+
+        return [
+            'event_id' => Event::inRandomOrder()->first()?->id ?? Event::factory(),
+            
+            'submitted_by_name' => fake()->name(),
+            'submitted_by_email' => fake()->safeEmail(),
+            
+            'participation_type' => $type,
+            'team_name' => $type === 'team' ? fake()->company() . ' Team' : null,
+            
+            'status' => $status,
+            
+            'review_comment' => $status === 'rejected' ? fake()->sentence() : null,
+            
+            'reviewed_by' => null,
+            'reviewed_at' => null,
+            
+            'form_answers' => [], 
+        ];
+    }
+    }
