@@ -12,6 +12,7 @@ use App\Http\Controllers\SubmissionController;
 use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
 
+// Agrupar todo en v1
 Route::prefix('/v1')->group(function (): void {
     // Endpoints de sesión y perfil.
     Route::prefix('/auth')->group(function (): void {
@@ -29,6 +30,7 @@ Route::prefix('/v1')->group(function (): void {
     Route::get('/events/{event}/form', [EventFormController::class, 'show']);
     Route::post('/events/{event}/submissions', [SubmissionController::class, 'store']);
 
+    // Rutas que requieren autenticación para gestión administrativa, moderación y revisión.
     Route::middleware('auth:sanctum')->group(function (): void {
         // Gestión administrativa de eventos.
         Route::post('/events', [EventController::class, 'store']);

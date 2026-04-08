@@ -2,9 +2,9 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\SubmissionMember;
 use App\Http\Requests\StoreSubmissionMemberRequest;
 use App\Http\Requests\UpdateSubmissionMemberRequest;
+use App\Models\SubmissionMember;
 
 class SubmissionMemberController extends Controller
 {

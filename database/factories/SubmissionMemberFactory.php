@@ -2,9 +2,9 @@
 
 namespace Database\Factories;
 
+use App\Models\Submission;
 use App\Models\SubmissionMember;
 use Illuminate\Database\Eloquent\Factories\Factory;
-use App\Models\Submission;
 
 /**
  * @extends Factory<SubmissionMember>

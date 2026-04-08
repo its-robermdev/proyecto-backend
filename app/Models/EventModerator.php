@@ -2,12 +2,13 @@
 
 namespace App\Models;
 
+use Database\Factories\EventModeratorFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class EventModerator extends Model
 {
-    /** @use HasFactory<\Database\Factories\EventModeratorFactory> */
+    /** @use HasFactory<EventModeratorFactory> */
     use HasFactory;
 
     protected $fillable = [

@@ -14,7 +14,8 @@ class SubmissionSeeder extends Seeder
         $events = Event::with('moderators')->get();
 
         if ($events->isEmpty()) {
-            $this->command->warn("No hay eventos. Ejecuta EventSeeder primero.");
+            $this->command->warn('No hay eventos. Ejecuta EventSeeder primero.');
+
             return;
         }
 
@@ -38,7 +39,7 @@ class SubmissionSeeder extends Seeder
                     $updates['reviewed_at'] = now()->subDays(rand(1, 5));
                 }
 
-                if (!empty($updates)) {
+                if (! empty($updates)) {
                     $submission->update($updates);
                 }
             }
@@ -51,18 +52,20 @@ class SubmissionSeeder extends Seeder
         $answers = [];
 
         foreach ($schema as $step) {
-            if (!isset($step['fields'])) continue;
+            if (! isset($step['fields'])) {
+                continue;
+            }
 
             foreach ($step['fields'] as $field) {
                 $name = $field['name'];
-                
+
                 $answers[$name] = match ($field['type'] ?? 'text') {
-                    'text'     => fake()->sentence(3),
+                    'text' => fake()->sentence(3),
                     'textarea' => fake()->paragraph(),
-                    'number'   => fake()->numberBetween(2020, 2030),
-                    'url'      => fake()->url(),
-                    'select'   => fake()->randomElement($field['options'] ?? ['Opción A', 'Opción B']),
-                    default    => fake()->word(),
+                    'number' => fake()->numberBetween(2020, 2030),
+                    'url' => fake()->url(),
+                    'select' => fake()->randomElement($field['options'] ?? ['Opción A', 'Opción B']),
+                    default => fake()->word(),
                 };
             }
         }

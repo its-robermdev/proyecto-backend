@@ -17,7 +17,7 @@ class EventModeratorService
         $moderator = User::query()->find($userId);
 
         if (! $moderator instanceof User) {
-            throw (new ModelNotFoundException())->setModel(User::class, [$userId]);
+            throw (new ModelNotFoundException)->setModel(User::class, [$userId]);
         }
 
         if (! $moderator->hasRole('moderator')) {

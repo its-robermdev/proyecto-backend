@@ -9,6 +9,7 @@ use App\Services\DynamicFormValidationService;
 use App\Services\EventFormService;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\ValidationException;
 use Illuminate\Validation\Validator;
 
 class StoreSubmissionRequest extends FormRequest
@@ -69,7 +70,7 @@ class StoreSubmissionRequest extends FormRequest
             if ($event instanceof Event) {
                 try {
                     app(EventFormService::class)->ensureSubmissionEnabled($event);
-                } catch (\Illuminate\Validation\ValidationException $exception) {
+                } catch (ValidationException $exception) {
                     foreach ($exception->errors() as $field => $messages) {
                         foreach ($messages as $message) {
                             $validator->errors()->add($field, $message);

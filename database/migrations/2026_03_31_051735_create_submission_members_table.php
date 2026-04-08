@@ -14,13 +14,13 @@ return new class extends Migration
         Schema::create('submission_members', function (Blueprint $table) {
             $table->id();
             $table->foreignId('submission_id')->constrained()->cascadeOnDelete();
-            
+
             $table->string('full_name');
             $table->string('email');
             $table->boolean('is_captain')->default(false);
-            
+
             $table->timestamps();
-            $table->softDeletes(); 
+            $table->softDeletes();
         });
     }
 
