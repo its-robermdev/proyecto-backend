@@ -62,7 +62,7 @@ class SubmissionPolicy
 
     public function restore(User $user, Submission $submission): bool
     {
-        return false;
+        return $user->hasPermissionTo(PermissionCatalog::ALL['delete_submission']);
     }
 
     public function forceDelete(User $user, Submission $submission): bool

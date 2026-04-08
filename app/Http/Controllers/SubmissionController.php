@@ -71,6 +71,45 @@ class SubmissionController extends Controller
         ], 200);
     }
 
+    // Soft delete de una submission.
+    public function destroy(Request $request, Submission $submission): JsonResponse
+    {
+        $submission->load(['event', 'members', 'reviewer']);
+        $submission->delete();
+
+        return response()->json([
+            'message' => 'Submission deleted successfully.',
+            'data' => new SubmissionResource($submission),
+            'status' => 200,
+        ], 200);
+    }
+
+    // Restaura una submission previamente eliminada.
+    public function restore(Request $request, int $submission): JsonResponse
+    {
+        /** @var User $user */
+        $user = $request->user();
+        $targetSubmission = Submission::withTrashed()
+            ->with(['event', 'members', 'reviewer'])
+            ->find($submission);
+
+        if (! $targetSubmission instanceof Submission) {
+            return $this->notFoundResponse('Submission not found.');
+        }
+
+        if ($user->cannot('restore', $targetSubmission)) {
+            return $this->forbiddenResponse('You are not allowed to restore this submission.');
+        }
+
+        $targetSubmission->restore();
+
+        return response()->json([
+            'message' => 'Submission restored successfully.',
+            'data' => new SubmissionResource($targetSubmission->refresh()->load(['event', 'members', 'reviewer'])),
+            'status' => 200,
+        ], 200);
+    }
+
     private function canAccessEventSubmissions(User $user, Event $event): bool
     {
         if ($user->hasPermissionTo(PermissionCatalog::ALL['view_any_event'])) {

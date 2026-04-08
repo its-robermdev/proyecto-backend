@@ -1,7 +1,5 @@
 <?php
 
-declare(strict_types=1);
-
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\EventController;
 use App\Http\Controllers\EventFormController;
@@ -36,6 +34,7 @@ Route::prefix('/v1')->group(function (): void {
         Route::post('/events', [EventController::class, 'store']);
         Route::patch('/events/{event}', [EventController::class, 'update']);
         Route::delete('/events/{event}', [EventController::class, 'destroy']);
+        Route::put('/events/{event}/restore', [EventController::class, 'restore']);
         Route::put('/events/{event}/status', EventStatusController::class);
 
         // Configuración del formulario por evento.
@@ -52,6 +51,8 @@ Route::prefix('/v1')->group(function (): void {
         // Backoffice de revisión y consulta de submissions.
         Route::get('/events/{event}/submissions', [SubmissionController::class, 'index']);
         Route::get('/submissions/{submission}', [SubmissionController::class, 'show']);
+        Route::delete('/submissions/{submission}', [SubmissionController::class, 'destroy']);
+        Route::put('/submissions/{submission}/restore', [SubmissionController::class, 'restore']);
         Route::patch('/submissions/{submission}/review', ReviewSubmissionController::class);
 
         // Administración de usuarios y roles.

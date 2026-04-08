@@ -102,4 +102,28 @@ class EventController extends Controller
             'status' => 200,
         ], 200);
     }
+
+    // Restaura un evento previamente eliminado.
+    public function restore(Request $request, int $event): JsonResponse
+    {
+        /** @var User $actor */
+        $actor = $request->user();
+        $targetEvent = Event::withTrashed()->find($event);
+
+        if (! $targetEvent instanceof Event) {
+            return $this->notFoundResponse('Event not found.');
+        }
+
+        if ($actor->cannot('restore', $targetEvent)) {
+            return $this->forbiddenResponse('You are not allowed to restore this event.');
+        }
+
+        $targetEvent->restore();
+
+        return response()->json([
+            'message' => 'Event restored successfully.',
+            'data' => new EventResource($targetEvent->refresh()),
+            'status' => 200,
+        ], 200);
+    }
 }

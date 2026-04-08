@@ -190,6 +190,23 @@
           }
         },
         {
+          "name": "Restore Event",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{auth_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "PUT",
+            "url": "{{base_url}}/events/{{event_id}}/restore"
+          }
+        },
+        {
           "name": "Update Event Status",
           "request": {
             "auth": {
@@ -431,6 +448,40 @@
             },
             "method": "GET",
             "url": "{{base_url}}/submissions/{{submission_id}}"
+          }
+        },
+        {
+          "name": "Delete Submission (Soft)",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{auth_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "DELETE",
+            "url": "{{base_url}}/submissions/{{submission_id}}"
+          }
+        },
+        {
+          "name": "Restore Submission",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{auth_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "PUT",
+            "url": "{{base_url}}/submissions/{{submission_id}}/restore"
           }
         },
         {
