@@ -1,0 +1,709 @@
+{
+  "info": {
+    "_postman_id": "5cbe0cb9-90ce-4fdc-8cb4-bd6a3f8b93a8",
+    "name": "C3 API v1",
+    "description": "Coleccion completa de endpoints v1 para C3.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Auth",
+      "item": [
+        {
+          "name": "Login",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const json = pm.response.json();",
+                  "if (json?.data?.token) pm.collectionVariables.set('auth_token', json.data.token);",
+                  "if (json?.data?.user?.id) pm.collectionVariables.set('user_id', String(json.data.user.id));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"admin@c3.com\",\n  \"password\": \"admin123\"\n}"
+            },
+            "url": "{{base_url}}/auth/login",
+            "description": "Obtiene token de Sanctum."
+          }
+        },
+        {
+          "name": "Logout",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{auth_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "url": "{{base_url}}/auth/logout"
+          }
+        },
+        {
+          "name": "Profile",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{auth_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "url": "{{base_url}}/auth/profile"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Events Public",
+      "item": [
+        {
+          "name": "List Events",
+          "request": {
+            "method": "GET",
+            "url": "{{base_url}}/events",
+            "description": "Publico: eventos publicados."
+          }
+        },
+        {
+          "name": "Show Event",
+          "request": {
+            "method": "GET",
+            "url": "{{base_url}}/events/{{event_id}}"
+          }
+        },
+        {
+          "name": "Get Event Form",
+          "request": {
+            "method": "GET",
+            "url": "{{base_url}}/events/{{event_id}}/form"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Events Admin",
+      "item": [
+        {
+          "name": "Create Event (Draft)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const json = pm.response.json();",
+                  "if (json?.data?.id) pm.collectionVariables.set('event_id', String(json.data.id));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{auth_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"C3 Hackathon 2026\",\n  \"slug\": \"c3-hackathon-2026\",\n  \"type\": \"hackathon\",\n  \"modality\": \"hybrid\",\n  \"description\": \"Evento principal\",\n  \"start_date\": \"2026-07-20T08:00:00Z\",\n  \"end_date\": \"2026-07-22T18:00:00Z\",\n  \"registration_deadline\": \"2026-07-15T23:59:00Z\",\n  \"capacity\": 200,\n  \"requires_approval\": true,\n  \"allows_teams\": true\n}"
+            },
+            "url": "{{base_url}}/events"
+          }
+        },
+        {
+          "name": "Update Event",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{auth_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"description\": \"Actualizado\",\n  \"capacity\": 250\n}"
+            },
+            "url": "{{base_url}}/events/{{event_id}}"
+          }
+        },
+        {
+          "name": "Delete Event (Soft)",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{auth_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "DELETE",
+            "url": "{{base_url}}/events/{{event_id}}"
+          }
+        },
+        {
+          "name": "Update Event Status",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{auth_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"published\"\n}"
+            },
+            "url": "{{base_url}}/events/{{event_id}}/status"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Event Form Admin",
+      "item": [
+        {
+          "name": "Save Form Schema",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{auth_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"form_schema\": [\n    {\n      \"step_name\": \"General\",\n      \"fields\": [\n        {\n          \"name\": \"github_user\",\n          \"type\": \"text\",\n          \"label\": \"GitHub User\",\n          \"validation\": \"required|string|max:255\"\n        },\n        {\n          \"name\": \"experience_level\",\n          \"type\": \"select\",\n          \"label\": \"Nivel\",\n          \"options\": [\"beginner\", \"intermediate\", \"advanced\"],\n          \"validation\": \"required|in:beginner,intermediate,advanced\"\n        }\n      ]\n    }\n  ]\n}"
+            },
+            "url": "{{base_url}}/events/{{event_id}}/form"
+          }
+        },
+        {
+          "name": "Validate Stored Schema",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{auth_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "url": "{{base_url}}/events/{{event_id}}/form/validation"
+          }
+        },
+        {
+          "name": "Activate Form",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{auth_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "PUT",
+            "url": "{{base_url}}/events/{{event_id}}/form/activation"
+          }
+        },
+        {
+          "name": "Deactivate Form",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{auth_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "DELETE",
+            "url": "{{base_url}}/events/{{event_id}}/form/activation"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Event Moderators",
+      "item": [
+        {
+          "name": "List Moderators",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{auth_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "url": "{{base_url}}/events/{{event_id}}/moderators"
+          }
+        },
+        {
+          "name": "Assign Moderator",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{auth_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"user_id\": {{moderator_user_id}}\n}"
+            },
+            "url": "{{base_url}}/events/{{event_id}}/moderators"
+          }
+        },
+        {
+          "name": "Remove Moderator",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{auth_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "DELETE",
+            "url": "{{base_url}}/events/{{event_id}}/moderators/{{moderator_user_id}}"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Submissions",
+      "item": [
+        {
+          "name": "Create Submission (Public)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const json = pm.response.json();",
+                  "if (json?.data?.id) pm.collectionVariables.set('submission_id', String(json.data.id));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"submitted_by_email\": \"participant@c3.dev\",\n  \"submitted_by_name\": \"Participant Name\",\n  \"participation_type\": \"team\",\n  \"team_name\": \"Binary Warriors\",\n  \"members\": [\n    {\n      \"full_name\": \"Participant Name\",\n      \"email\": \"participant@c3.dev\",\n      \"is_captain\": true\n    },\n    {\n      \"full_name\": \"Teammate Name\",\n      \"email\": \"teammate@c3.dev\",\n      \"is_captain\": false\n    }\n  ],\n  \"form_answers\": {\n    \"github_user\": \"participant-gh\",\n    \"experience_level\": \"intermediate\"\n  }\n}"
+            },
+            "url": "{{base_url}}/events/{{event_id}}/submissions"
+          }
+        },
+        {
+          "name": "List Event Submissions",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{auth_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "url": "{{base_url}}/events/{{event_id}}/submissions"
+          }
+        },
+        {
+          "name": "Show Submission",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{auth_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "url": "{{base_url}}/submissions/{{submission_id}}"
+          }
+        },
+        {
+          "name": "Review Submission",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{auth_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"approved\",\n  \"review_comment\": \"Great submission.\"\n}"
+            },
+            "url": "{{base_url}}/submissions/{{submission_id}}/review"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Users Admin",
+      "item": [
+        {
+          "name": "List Users",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{auth_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "url": "{{base_url}}/users"
+          }
+        },
+        {
+          "name": "Create User",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const json = pm.response.json();",
+                  "if (json?.data?.id) pm.collectionVariables.set('user_id', String(json.data.id));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{auth_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"New Moderator\",\n  \"email\": \"new.mod@c3.dev\",\n  \"password\": \"Password123\",\n  \"is_active\": true,\n  \"roles\": [\"moderator\"]\n}"
+            },
+            "url": "{{base_url}}/users"
+          }
+        },
+        {
+          "name": "Show User",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{auth_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "url": "{{base_url}}/users/{{user_id}}"
+          }
+        },
+        {
+          "name": "Update User",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{auth_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Updated Name\",\n  \"is_active\": true\n}"
+            },
+            "url": "{{base_url}}/users/{{user_id}}"
+          }
+        },
+        {
+          "name": "Delete User (Soft)",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{auth_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "DELETE",
+            "url": "{{base_url}}/users/{{user_id}}"
+          }
+        },
+        {
+          "name": "Restore User",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{auth_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "PUT",
+            "url": "{{base_url}}/users/{{user_id}}/restore"
+          }
+        },
+        {
+          "name": "Activate User",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{auth_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "PUT",
+            "url": "{{base_url}}/users/{{user_id}}/activation"
+          }
+        },
+        {
+          "name": "Deactivate User",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{auth_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "DELETE",
+            "url": "{{base_url}}/users/{{user_id}}/activation"
+          }
+        },
+        {
+          "name": "Get User Roles",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{auth_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "url": "{{base_url}}/users/{{user_id}}/roles"
+          }
+        },
+        {
+          "name": "Sync User Roles",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{auth_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"roles\": [\"moderator\"]\n}"
+            },
+            "url": "{{base_url}}/users/{{user_id}}/roles"
+          }
+        }
+      ]
+    }
+  ],
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:8000/api/v1"
+    },
+    {
+      "key": "auth_token",
+      "value": ""
+    },
+    {
+      "key": "event_id",
+      "value": "1"
+    },
+    {
+      "key": "submission_id",
+      "value": "1"
+    },
+    {
+      "key": "user_id",
+      "value": "1"
+    },
+    {
+      "key": "moderator_user_id",
+      "value": "2"
+    }
+  ]
+}

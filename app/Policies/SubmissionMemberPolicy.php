@@ -8,6 +8,7 @@ use Illuminate\Auth\Access\Response;
 
 class SubmissionMemberPolicy
 {
+    // Placeholder de policy para miembros; actualmente se gestionan dentro del flujo de submissions.
     /**
      * Determine whether the user can view any models.
      */

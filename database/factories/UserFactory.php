@@ -22,6 +22,7 @@ class UserFactory extends Factory
      *
      * @return array<string, mixed>
      */
+    // Estado base para pruebas: usuario activo con password conocida.
     public function definition(): array
     {
         return [
@@ -34,6 +35,7 @@ class UserFactory extends Factory
         ];
     }
 
+    // Marca usuario sin verificación de email.
     public function unverified(): static
     {
         return $this->state(fn (array $attributes) => [
@@ -41,6 +43,7 @@ class UserFactory extends Factory
         ]);
     }
 
+    // Marca usuario inactivo para escenarios de acceso denegado.
     public function inactive(): static
     {
         return $this->state(fn (array $attributes) => [

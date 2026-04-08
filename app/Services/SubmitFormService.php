@@ -14,6 +14,7 @@ class SubmitFormService
     /**
      * @param  array<string, mixed>  $validated
      */
+    // Crea submission y miembros asociados en una sola transacción atómica.
     public function submit(Event $event, array $validated): Submission
     {
         return DB::transaction(function () use ($event, $validated): Submission {

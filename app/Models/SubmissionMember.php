@@ -26,6 +26,7 @@ class SubmissionMember extends Model
         'is_captain' => 'boolean',
     ];
 
+    // Submission padre del miembro.
     public function submission(): BelongsTo
     {
         return $this->belongsTo(Submission::class);

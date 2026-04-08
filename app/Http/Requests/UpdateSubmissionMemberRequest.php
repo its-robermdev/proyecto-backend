@@ -7,21 +7,18 @@ use Illuminate\Foundation\Http\FormRequest;
 
 class UpdateSubmissionMemberRequest extends FormRequest
 {
-    /**
-     * Determine if the user is authorized to make this request.
-     */
+    // Placeholder: request reservado para edición manual de miembros.
     public function authorize(): bool
     {
         return false;
     }
 
     /**
-     * Get the validation rules that apply to the request.
-     *
      * @return array<string, ValidationRule|array<mixed>|string>
      */
     public function rules(): array
     {
+        // Sin reglas porque el endpoint aún no está implementado.
         return [
             //
         ];

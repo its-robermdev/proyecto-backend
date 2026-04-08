@@ -7,7 +7,7 @@ namespace App\Http\Requests;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
-class ReviewSubmissionRequest extends FormRequest
+class UpdateEventStatusRequest extends FormRequest
 {
     // La autorización fina se delega al controlador/policies.
     public function authorize(): bool
@@ -20,10 +20,9 @@ class ReviewSubmissionRequest extends FormRequest
      */
     public function rules(): array
     {
-        // Solo se permiten decisiones finales de revisión.
+        // Estados permitidos por contrato de API.
         return [
-            'status' => ['required', Rule::in(['approved', 'rejected'])],
-            'review_comment' => ['nullable', 'string', 'max:1000'],
+            'status' => ['required', Rule::in(['draft', 'published', 'closed', 'cancelled', 'archived'])],
         ];
     }
 }

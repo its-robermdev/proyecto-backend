@@ -5,9 +5,8 @@ declare(strict_types=1);
 namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
-use Illuminate\Validation\Rule;
 
-class ReviewSubmissionRequest extends FormRequest
+class SyncUserRolesRequest extends FormRequest
 {
     // La autorización fina se delega al controlador/policies.
     public function authorize(): bool
@@ -20,10 +19,10 @@ class ReviewSubmissionRequest extends FormRequest
      */
     public function rules(): array
     {
-        // Solo se permiten decisiones finales de revisión.
+        // Obliga a enviar al menos un rol válido para sincronización.
         return [
-            'status' => ['required', Rule::in(['approved', 'rejected'])],
-            'review_comment' => ['nullable', 'string', 'max:1000'],
+            'roles' => ['required', 'array', 'min:1'],
+            'roles.*' => ['required', 'string', 'exists:roles,name'],
         ];
     }
 }

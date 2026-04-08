@@ -6,27 +6,25 @@ namespace App\Http\Requests;
 
 use App\Models\Event;
 use App\Services\DynamicFormValidationService;
+use App\Services\EventFormService;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\Validator;
 
 class StoreSubmissionRequest extends FormRequest
 {
-    /**
-     * Determine if the user is authorized to make this request.
-     */
+    // Endpoint público: la autorización por usuario no aplica en esta capa.
     public function authorize(): bool
     {
         return true;
     }
 
     /**
-     * Get the validation rules that apply to the request.
-     *
      * @return array<string, array<int, mixed>|string>
      */
     public function rules(): array
     {
+        // Reglas base de inscripción + unicidad por evento/correo.
         $baseRules = [
             'submitted_by_email' => ['required', 'email', 'max:255'],
             'submitted_by_name' => ['required', 'string', 'max:255'],
@@ -47,6 +45,11 @@ class StoreSubmissionRequest extends FormRequest
             return $baseRules;
         }
 
+        $baseRules['submitted_by_email'][] = Rule::unique('submissions', 'submitted_by_email')
+            ->where(fn ($query) => $query
+                ->where('event_id', $event->id)
+                ->whereNull('deleted_at'));
+
         return array_merge(
             $baseRules,
             app(DynamicFormValidationService::class)->rulesForEvent($event),
@@ -55,29 +58,44 @@ class StoreSubmissionRequest extends FormRequest
 
     public function withValidator(Validator $validator): void
     {
+        // Reglas de negocio tardías: disponibilidad del evento y estructura de equipo.
         $validator->after(function (Validator $validator): void {
             if ($this->input('participation_type') !== 'team') {
-                return;
+                // Continue with event availability checks.
             }
 
             $event = $this->route('event');
 
-            if ($event instanceof Event && ! $event->allows_teams) {
-                $validator->errors()->add('participation_type', 'This event does not allow team submissions.');
+            if ($event instanceof Event) {
+                try {
+                    app(EventFormService::class)->ensureSubmissionEnabled($event);
+                } catch (\Illuminate\Validation\ValidationException $exception) {
+                    foreach ($exception->errors() as $field => $messages) {
+                        foreach ($messages as $message) {
+                            $validator->errors()->add($field, $message);
+                        }
+                    }
+                }
             }
 
-            $members = $this->input('members', []);
+            if ($this->input('participation_type') === 'team') {
+                if ($event instanceof Event && ! $event->allows_teams) {
+                    $validator->errors()->add('participation_type', 'This event does not allow team submissions.');
+                }
 
-            if (! is_array($members)) {
-                return;
-            }
+                $members = $this->input('members', []);
 
-            $captains = collect($members)
-                ->filter(fn (mixed $member): bool => is_array($member) && filter_var($member['is_captain'] ?? false, FILTER_VALIDATE_BOOL))
-                ->count();
+                if (! is_array($members)) {
+                    return;
+                }
 
-            if ($captains !== 1) {
-                $validator->errors()->add('members', 'Team submissions must include exactly one captain.');
+                $captains = collect($members)
+                    ->filter(fn (mixed $member): bool => is_array($member) && filter_var($member['is_captain'] ?? false, FILTER_VALIDATE_BOOL))
+                    ->count();
+
+                if ($captains !== 1) {
+                    $validator->errors()->add('members', 'Team submissions must include exactly one captain.');
+                }
             }
         });
     }

@@ -10,6 +10,7 @@ use Illuminate\Support\Str;
 
 class EventFactory extends Factory
 {
+    // Genera eventos publicados con schema dinámico para pruebas funcionales.
     public function definition(): array
     {
         $title = fake()->unique()->sentence(rand(3, 6));
@@ -83,6 +84,7 @@ class EventFactory extends Factory
             'capacity' => fake()->numberBetween(20, 150),
             'requires_approval' => fake()->boolean(40),
             'allows_teams' => fake()->boolean(50),
+            'form_is_active' => true,
             'status' => 'published',
             'form_schema' => array_values($selectedSteps),
             'created_by' => User::role('admin')->inRandomOrder()->first()?->id

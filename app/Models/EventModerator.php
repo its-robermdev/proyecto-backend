@@ -15,11 +15,13 @@ class EventModerator extends Model
         'user_id',
     ];
 
+    // Relación al evento moderado.
     public function event()
     {
         return $this->belongsTo(Event::class);
     }
 
+    // Relación al usuario moderador.
     public function user()
     {
         return $this->belongsTo(User::class);

@@ -8,6 +8,7 @@ use Illuminate\Auth\Access\Response;
 
 class EventModeratorPolicy
 {
+    // Placeholder de policy para el modelo pivot; rutas activas usan EventPolicy + checks en controlador.
     /**
      * Determine whether the user can view any models.
      */

@@ -1,58 +1,71 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Http\Controllers;
 
-use App\Models\User; // <-- Importante: Añadir el modelo
+use App\Models\User;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Hash; // <-- Importante: Añadir el Facade Hash
+use Illuminate\Support\Facades\Hash;
 
 class AuthController extends Controller
 {
-    /**
-     * Handle the incoming request.
-     */
-    public function login(Request $request)
+    // Autentica al usuario y devuelve un token de API.
+    public function login(Request $request): JsonResponse
     {
-        $request->validate([
-            'email' => 'required|email',
-            'password' => 'required',
+        $credentials = $request->validate([
+            'email' => ['required', 'email'],
+            'password' => ['required', 'string'],
         ]);
 
-        $user = User::where('email', $request->email)->first();
+        $user = User::query()->where('email', $credentials['email'])->first();
 
-        if (! $user || ! Hash::check($request->password, $user->password)) {
+        if (! $user instanceof User || ! Hash::check($credentials['password'], $user->password)) {
             return response()->json([
-                'message' => 'Email or password incorrect',
+                'message' => 'Email or password incorrect.',
+                'data' => null,
             ], 422);
         }
 
-        $token = $user->createToken('token-name');
+        if (! $user->is_active) {
+            return response()->json([
+                'message' => 'This user account is inactive.',
+                'data' => null,
+            ], 403);
+        }
+
+        $token = $user->createToken('api-token');
 
         return response()->json([
-            'status' => 'success',
-            'message' => 'Login successful',
-            'token' => $token->plainTextToken,
-            'user' => $user,
+            'message' => 'Login successful.',
+            'data' => [
+                'token' => $token->plainTextToken,
+                'user' => $user,
+            ],
         ]);
     }
 
-    public function logout(Request $request)
+    // Revoca todos los tokens activos del usuario autenticado.
+    public function logout(Request $request): JsonResponse
     {
-        /** @var \App\Models\User */
+        /** @var User $user */
         $user = Auth::user();
         $user->tokens()->delete();
 
         return response()->json([
-            'status' => 'success',
-            'message' => 'Logout successful',
+            'message' => 'Logout successful.',
+            'data' => null,
         ]);
     }
 
-    public function profile(Request $request)
+    // Retorna los datos del usuario autenticado.
+    public function profile(Request $request): JsonResponse
     {
         return response()->json([
-            'profile' => Auth::user(),
+            'message' => 'Profile retrieved successfully.',
+            'data' => $request->user(),
         ]);
     }
 }

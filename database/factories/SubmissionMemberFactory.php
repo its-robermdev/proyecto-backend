@@ -16,6 +16,7 @@ class SubmissionMemberFactory extends Factory
      *
      * @return array<string, mixed>
      */
+    // Genera miembros adicionales asociados a una submission.
     public function definition(): array
     {
         return [

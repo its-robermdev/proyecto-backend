@@ -7,6 +7,7 @@ use Spatie\Permission\Models\Role;
 
 class RoleSeeder extends Seeder
 {
+    // Crea roles base usados por authorization en la API.
     public function run(): void
     {
         Role::create(['name' => 'admin']);

@@ -14,6 +14,7 @@ class EventSeeder extends Seeder
      */
     public function run(): void
     {
+        // Usa un admin como creador y asigna moderadores aleatorios por evento.
         $admin = User::role('admin')->first();
 
         $potentialModerators = User::role('moderator')->get();

@@ -8,6 +8,7 @@ use Illuminate\Database\Seeder;
 
 class SubmissionMemberSeeder extends Seeder
 {
+    // Para teams, crea capitán y miembros extra vinculados a la submission.
     public function run(): void
     {
         $teamSubmissions = Submission::where('participation_type', 'team')->get();

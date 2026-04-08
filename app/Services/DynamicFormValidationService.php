@@ -9,6 +9,8 @@ use App\Models\Event;
 class DynamicFormValidationService
 {
     /**
+     * Convierte el form_schema del evento en reglas Laravel para form_answers.
+     *
      * @return array<string, string>
      */
     public function rulesForEvent(Event $event): array

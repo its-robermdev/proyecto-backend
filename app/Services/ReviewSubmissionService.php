@@ -12,6 +12,7 @@ class ReviewSubmissionService
     /**
      * @param  array{status: string, review_comment?: string|null}  $validated
      */
+    // Persiste decisión de revisión y metadatos de auditoría.
     public function review(Submission $submission, array $validated, User $reviewer): Submission
     {
         $submission->update([

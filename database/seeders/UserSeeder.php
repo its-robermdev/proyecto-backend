@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\Hash;
 
 class UserSeeder extends Seeder
 {
+    // Siembra usuarios de referencia (admin/mod) y lotes de soporte para pruebas.
     public function run(): void
     {
         $admin = User::factory()->create([

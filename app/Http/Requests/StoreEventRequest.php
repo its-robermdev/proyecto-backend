@@ -1,29 +1,38 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Http\Requests;
 
-use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class StoreEventRequest extends FormRequest
 {
-    /**
-     * Determine if the user is authorized to make this request.
-     */
+    // La autorización fina se delega al controlador/policies.
     public function authorize(): bool
     {
-        return false;
+        return true;
     }
 
     /**
-     * Get the validation rules that apply to the request.
-     *
-     * @return array<string, ValidationRule|array<mixed>|string>
+     * @return array<string, array<int, mixed>|string>
      */
     public function rules(): array
     {
+        // Reglas mínimas para crear un evento válido en draft.
         return [
-            //
+            'title' => ['required', 'string', 'max:255'],
+            'slug' => ['required', 'string', 'max:255', Rule::unique('events', 'slug')],
+            'type' => ['required', Rule::in(['hackathon', 'bootcamp', 'workshop', 'conference', 'job_fair', 'other'])],
+            'modality' => ['required', Rule::in(['online', 'in-person', 'hybrid'])],
+            'description' => ['required', 'string'],
+            'start_date' => ['required', 'date'],
+            'end_date' => ['nullable', 'date', 'after_or_equal:start_date'],
+            'registration_deadline' => ['required', 'date', 'before_or_equal:start_date'],
+            'capacity' => ['required', 'integer', 'min:1'],
+            'requires_approval' => ['sometimes', 'boolean'],
+            'allows_teams' => ['sometimes', 'boolean'],
         ];
     }
 }

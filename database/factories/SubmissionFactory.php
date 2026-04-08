@@ -1,10 +1,12 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Database\Factories;
 
+use App\Models\Event;
 use App\Models\Submission;
 use Illuminate\Database\Eloquent\Factories\Factory;
-use App\Models\Event;
 
 /**
  * @extends Factory<Submission>
@@ -12,10 +14,9 @@ use App\Models\Event;
 class SubmissionFactory extends Factory
 {
     /**
-     * Define the model's default state.
-     *
      * @return array<string, mixed>
      */
+    // Genera submissions con combinaciones de tipo y estado.
     public function definition(): array
     {
         $type = fake()->randomElement(['individual', 'team']);
@@ -23,21 +24,15 @@ class SubmissionFactory extends Factory
 
         return [
             'event_id' => Event::inRandomOrder()->first()?->id ?? Event::factory(),
-            
             'submitted_by_name' => fake()->name(),
             'submitted_by_email' => fake()->safeEmail(),
-            
             'participation_type' => $type,
-            'team_name' => $type === 'team' ? fake()->company() . ' Team' : null,
-            
+            'team_name' => $type === 'team' ? fake()->company().' Team' : null,
             'status' => $status,
-            
             'review_comment' => $status === 'rejected' ? fake()->sentence() : null,
-            
             'reviewed_by' => null,
             'reviewed_at' => null,
-            
-            'form_answers' => [], 
+            'form_answers' => [],
         ];
     }
-    }
+}

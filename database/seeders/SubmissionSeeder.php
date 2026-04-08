@@ -8,6 +8,7 @@ use Illuminate\Database\Seeder;
 
 class SubmissionSeeder extends Seeder
 {
+    // Siembra submissions por evento y completa respuestas según schema dinámico.
     public function run(): void
     {
         $events = Event::with('moderators')->get();
@@ -44,6 +45,7 @@ class SubmissionSeeder extends Seeder
         }
     }
 
+    // Genera respuestas fake coherentes con los tipos de campo del schema.
     private function generateAnswersForEvent(array $schema): array
     {
         $answers = [];

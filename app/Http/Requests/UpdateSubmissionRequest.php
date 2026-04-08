@@ -7,21 +7,18 @@ use Illuminate\Foundation\Http\FormRequest;
 
 class UpdateSubmissionRequest extends FormRequest
 {
-    /**
-     * Determine if the user is authorized to make this request.
-     */
+    // Placeholder: request reservado para futuro update de submissions.
     public function authorize(): bool
     {
         return false;
     }
 
     /**
-     * Get the validation rules that apply to the request.
-     *
      * @return array<string, ValidationRule|array<mixed>|string>
      */
     public function rules(): array
     {
+        // Sin reglas porque la operación aún no está expuesta en rutas.
         return [
             //
         ];

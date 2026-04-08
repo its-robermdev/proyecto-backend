@@ -27,16 +27,19 @@ class Submission extends Model
         'reviewed_at' => 'datetime',
     ];
 
+    // Evento al que pertenece la inscripción.
     public function event(): BelongsTo
     {
         return $this->belongsTo(Event::class);
     }
 
+    // Usuario que realizó la revisión final.
     public function reviewer(): BelongsTo
     {
         return $this->belongsTo(User::class, 'reviewed_by');
     }
 
+    // Miembros vinculados cuando la participación es por equipo.
     public function members(): HasMany
     {
         return $this->hasMany(SubmissionMember::class);

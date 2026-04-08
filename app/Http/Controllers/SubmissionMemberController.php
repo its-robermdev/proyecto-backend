@@ -13,7 +13,7 @@ class SubmissionMemberController extends Controller
      */
     public function index()
     {
-        //
+        // Endpoint reservado para listado de miembros por submission.
     }
 
     /**
@@ -21,7 +21,7 @@ class SubmissionMemberController extends Controller
      */
     public function create()
     {
-        //
+        // No se usa en API REST (placeholder heredado del scaffold).
     }
 
     /**
@@ -29,7 +29,7 @@ class SubmissionMemberController extends Controller
      */
     public function store(StoreSubmissionMemberRequest $request)
     {
-        //
+        // Endpoint reservado para crear miembros manualmente.
     }
 
     /**
@@ -37,7 +37,7 @@ class SubmissionMemberController extends Controller
      */
     public function show(SubmissionMember $submissionMember)
     {
-        //
+        // Endpoint reservado para ver detalle de un miembro.
     }
 
     /**
@@ -45,7 +45,7 @@ class SubmissionMemberController extends Controller
      */
     public function edit(SubmissionMember $submissionMember)
     {
-        //
+        // No se usa en API REST (placeholder heredado del scaffold).
     }
 
     /**
@@ -53,7 +53,7 @@ class SubmissionMemberController extends Controller
      */
     public function update(UpdateSubmissionMemberRequest $request, SubmissionMember $submissionMember)
     {
-        //
+        // Endpoint reservado para actualizar miembro de submission.
     }
 
     /**
@@ -61,6 +61,6 @@ class SubmissionMemberController extends Controller
      */
     public function destroy(SubmissionMember $submissionMember)
     {
-        //
+        // Endpoint reservado para eliminar miembro de submission.
     }
 }
