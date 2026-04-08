@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
@@ -21,7 +23,7 @@ return new class extends Migration
                 'workshop',
                 'conference',
                 'job_fair',
-                'other'
+                'other',
             ]);
             $table->enum('modality', ['online', 'in-person', 'hybrid']);
             $table->text('description');
@@ -30,6 +32,7 @@ return new class extends Migration
             $table->dateTime('registration_deadline');
             $table->integer('capacity');
             $table->boolean('requires_approval')->default(false);
+            $table->boolean('allows_teams')->default(false);
             $table->enum('status', ['draft', 'published', 'closed', 'cancelled', 'archived'])->default('draft');
             $table->json('form_schema')->nullable();
 

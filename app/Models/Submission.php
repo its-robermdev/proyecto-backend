@@ -1,20 +1,25 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Models;
 
+use Database\Factories\SubmissionFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Submission extends Model
 {
-    /** @use HasFactory<\Database\Factories\SubmissionFactory> */
+    /** @use HasFactory<SubmissionFactory> */
     use HasFactory, SoftDeletes;
 
     protected $fillable = [
         'event_id', 'submitted_by_email', 'submitted_by_name',
         'participation_type', 'team_name', 'status',
-        'review_comment', 'reviewed_by', 'reviewed_at', 'form_answers'
+        'review_comment', 'reviewed_by', 'reviewed_at', 'form_answers',
     ];
 
     protected $casts = [
@@ -22,17 +27,17 @@ class Submission extends Model
         'reviewed_at' => 'datetime',
     ];
 
-    public function event()
+    public function event(): BelongsTo
     {
         return $this->belongsTo(Event::class);
     }
 
-    public function reviewer()
+    public function reviewer(): BelongsTo
     {
         return $this->belongsTo(User::class, 'reviewed_by');
     }
 
-    public function members() 
+    public function members(): HasMany
     {
         return $this->hasMany(SubmissionMember::class);
     }

@@ -1,66 +1,46 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Http\Controllers;
 
-use App\Models\Submission;
 use App\Http\Requests\StoreSubmissionRequest;
-use App\Http\Requests\UpdateSubmissionRequest;
+use App\Http\Resources\SubmissionResource;
+use App\Models\Event;
+use App\Models\Submission;
+use App\Services\SubmitFormService;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
+use Illuminate\Support\Facades\Gate;
 
 class SubmissionController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
-    public function index()
+    public function index(Event $event): AnonymousResourceCollection
     {
-        //
+        Gate::authorize('viewAny', Submission::class);
+
+        $submissions = $event->submissions()
+            ->with(['members', 'reviewer'])
+            ->latest()
+            ->paginate();
+
+        return SubmissionResource::collection($submissions);
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
+    public function store(StoreSubmissionRequest $request, Event $event, SubmitFormService $submitFormService): JsonResponse
     {
-        //
+        $submission = $submitFormService->submit($event, $request->validated());
+
+        return response()->json([
+            'message' => 'Submission created successfully.',
+            'data' => new SubmissionResource($submission),
+        ], 201);
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(StoreSubmissionRequest $request)
+    public function show(Submission $submission): SubmissionResource
     {
-        //
-    }
+        Gate::authorize('view', $submission);
 
-    /**
-     * Display the specified resource.
-     */
-    public function show(Submission $submission)
-    {
-        //
-    }
-
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(Submission $submission)
-    {
-        //
-    }
-
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(UpdateSubmissionRequest $request, Submission $submission)
-    {
-        //
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(Submission $submission)
-    {
-        //
+        return new SubmissionResource($submission->load(['event', 'members', 'reviewer']));
     }
 }

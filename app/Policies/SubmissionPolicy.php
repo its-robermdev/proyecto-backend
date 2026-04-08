@@ -1,66 +1,56 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Policies;
 
 use App\Models\Submission;
 use App\Models\User;
-use Illuminate\Auth\Access\Response;
 
 class SubmissionPolicy
 {
-    /**
-     * Determine whether the user can view any models.
-     */
     public function viewAny(User $user): bool
     {
-        return false;
+        return $this->isReviewer($user);
     }
 
-    /**
-     * Determine whether the user can view the model.
-     */
     public function view(User $user, Submission $submission): bool
     {
-        return false;
+        return $this->isReviewer($user);
     }
 
-    /**
-     * Determine whether the user can create models.
-     */
     public function create(User $user): bool
     {
-        return false;
+        return $this->isReviewer($user);
     }
 
-    /**
-     * Determine whether the user can update the model.
-     */
     public function update(User $user, Submission $submission): bool
     {
-        return false;
+        return $this->isReviewer($user);
     }
 
-    /**
-     * Determine whether the user can delete the model.
-     */
+    public function review(User $user, Submission $submission): bool
+    {
+        return $this->isReviewer($user);
+    }
+
     public function delete(User $user, Submission $submission): bool
     {
         return false;
     }
 
-    /**
-     * Determine whether the user can restore the model.
-     */
     public function restore(User $user, Submission $submission): bool
     {
         return false;
     }
 
-    /**
-     * Determine whether the user can permanently delete the model.
-     */
     public function forceDelete(User $user, Submission $submission): bool
     {
         return false;
+    }
+
+    private function isReviewer(User $user): bool
+    {
+        return $user->hasAnyRole(['admin', 'moderator']);
     }
 }

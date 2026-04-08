@@ -1,14 +1,18 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Models;
 
+use Database\Factories\SubmissionMemberFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class SubmissionMember extends Model
 {
-    /** @use HasFactory<\Database\Factories\SubmissionMemberFactory> */
+    /** @use HasFactory<SubmissionMemberFactory> */
     use HasFactory, SoftDeletes;
 
     protected $fillable = [
@@ -22,7 +26,7 @@ class SubmissionMember extends Model
         'is_captain' => 'boolean',
     ];
 
-    public function submission()
+    public function submission(): BelongsTo
     {
         return $this->belongsTo(Submission::class);
     }
