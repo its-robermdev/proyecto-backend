@@ -4,61 +4,60 @@ namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
 use Spatie\Permission\Models\Permission;
+use Spatie\Permission\PermissionRegistrar;
 
-enum PermissionName: string
+final class PermissionCatalog
 {
-    case VIEW_ANY_EVENT = 'view_any_event';
-    case VIEW_OWN_EVENT = 'view_own_event';
-    case CREATE_EVENT = 'create_event';
-    case UPDATE_EVENT = 'update_event';
-    case DELETE_EVENT = 'delete_event';
-    case MANAGE_MODERATOR_PROFILES = 'manage_moderator_profiles';
-    case EDIT_OWN_PROFILE = 'edit_own_profile';
-    case ASSIGN_EVENT_MODERATORS = 'assign_event_moderators';
-    case VIEW_EVENT_SUBMISSIONS = 'view_event_submissions';
-    case EVALUATE_SUBMISSION = 'evaluate_submission';
-    case UPDATE_SUBMISSION = 'update_submission';
-    case DELETE_SUBMISSION = 'delete_submission';
+    public const GUARD_NAME = 'api';
 
-    /**
-     * @return array<int, string>
-     */
-    public static function all(): array
-    {
-        return array_map(
-            static fn (self $permission): string => $permission->value,
-            self::cases(),
-        );
-    }
+    public const ALL = [
+        'view_any_event' => 'view_any_event',
+        'view_own_event' => 'view_own_event',
+        'create_event' => 'create_event',
+        'update_event' => 'update_event',
+        'delete_event' => 'delete_event',
+        'manage_moderator_profiles' => 'manage_moderator_profiles',
+        'edit_own_profile' => 'edit_own_profile',
+        'assign_event_moderators' => 'assign_event_moderators',
+        'view_event_submissions' => 'view_event_submissions',
+        'evaluate_submission' => 'evaluate_submission',
+        'update_submission' => 'update_submission',
+        'delete_submission' => 'delete_submission',
+    ];
 
-    /**
-     * @return array<int, string>
-     */
-    public static function admin(): array
-    {
-        return array_values(array_diff(self::all(), [self::VIEW_OWN_EVENT->value]));
-    }
-
-    /**
-     * @return array<int, string>
-     */
-    public static function moderator(): array
-    {
-        return [
-            self::VIEW_OWN_EVENT->value,
-            self::VIEW_EVENT_SUBMISSIONS->value,
-            self::EVALUATE_SUBMISSION->value,
-            self::EDIT_OWN_PROFILE->value,
-        ];
-    }
+    public const BY_ROLE = [
+        'admin' => [
+            'view_any_event',
+            'create_event',
+            'update_event',
+            'delete_event',
+            'manage_moderator_profiles',
+            'edit_own_profile',
+            'assign_event_moderators',
+            'view_event_submissions',
+            'evaluate_submission',
+            'update_submission',
+            'delete_submission',
+        ],
+        'moderator' => [
+            'view_own_event',
+            'view_event_submissions',
+            'evaluate_submission',
+            'edit_own_profile',
+        ],
+    ];
 }
 
 class PermissionSeeder extends Seeder
 {
     public function run(): void
     {
-        foreach (PermissionName::all() as $permission) {
-            Permission::findOrCreate($permission, 'api');
+        app(PermissionRegistrar::class)->forgetCachedPermissions();
+
+        foreach (PermissionCatalog::ALL as $permission) {
+            Permission::findOrCreate($permission, PermissionCatalog::GUARD_NAME);
         }
+
+        app(PermissionRegistrar::class)->forgetCachedPermissions();
     }
 }

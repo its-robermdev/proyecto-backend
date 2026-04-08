@@ -8,7 +8,7 @@ use App\Models\Event;
 use App\Models\Submission;
 use App\Models\User;
 use App\Services\SubmitFormService;
-use Database\Seeders\PermissionName;
+use Database\Seeders\PermissionCatalog;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
@@ -73,7 +73,7 @@ class SubmissionController extends Controller
 
     private function canAccessEventSubmissions(User $user, Event $event): bool
     {
-        if ($user->hasPermissionTo(PermissionName::VIEW_ANY_EVENT->value)) {
+        if ($user->hasPermissionTo(PermissionCatalog::ALL['view_any_event'])) {
             return true;
         }
 

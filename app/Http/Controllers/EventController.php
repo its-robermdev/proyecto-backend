@@ -7,7 +7,7 @@ use App\Http\Requests\UpdateEventRequest;
 use App\Http\Resources\EventResource;
 use App\Models\Event;
 use App\Models\User;
-use Database\Seeders\PermissionName;
+use Database\Seeders\PermissionCatalog;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
@@ -26,9 +26,9 @@ class EventController extends Controller
         $query = Event::query()->latest();
         $user = $request->user();
 
-        if ($user instanceof User && $user->hasPermissionTo(PermissionName::VIEW_ANY_EVENT->value)) {
+        if ($user instanceof User && $user->hasPermissionTo(PermissionCatalog::ALL['view_any_event'])) {
             // Global visibility keeps the full list.
-        } elseif ($user instanceof User && $user->hasPermissionTo(PermissionName::VIEW_OWN_EVENT->value)) {
+        } elseif ($user instanceof User && $user->hasPermissionTo(PermissionCatalog::ALL['view_own_event'])) {
             $query->where(function ($query) use ($user): void {
                 $query->where('status', 'published')
                     ->orWhereHas('moderators', fn ($moderatorQuery) => $moderatorQuery->where('users.id', $user->id));
