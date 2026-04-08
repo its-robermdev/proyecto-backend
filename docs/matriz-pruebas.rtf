@@ -1,0 +1,172 @@
+{\rtf1\ansi\deff0
+{\fonttbl{\f0 Calibri;}}
+\fs24
+\b Matriz de Pruebas - API Backend\par
+\b0
+\par
+Documento derivado de la suite automatizada actual. Formato compatible con Microsoft Word y editores que soportan RTF.\par
+Alcance: 100 casos existentes, sin agregar nuevos escenarios.\par
+\par
+\b Convenciones\par
+\b0
+ID: identificador secuencial de la matriz.\par
+Tipo: Feature o Unit.\par
+Fuente: archivo de prueba donde vive el caso automatizado.\par
+Resultado esperado: comportamiento observado y validado por la suite actual.\par
+\par
+\b Resumen por modulo\par
+\b0
+Feature - Auth: 6 casos.\par
+Feature - Events: 17 casos.\par
+Feature - Event Form: 11 casos.\par
+Feature - Event Moderators: 5 casos.\par
+Feature - Submissions: 17 casos.\par
+Feature - Users: 13 casos.\par
+Unit - Event Lifecycle Service: 7 casos.\par
+Unit - Event Form Service: 7 casos.\par
+Unit - Submit Form Service: 4 casos.\par
+Unit - User Management Service: 5 casos.\par
+Unit - Authorization and Model: 8 casos.\par
+\par
+\b Matriz\par
+\b0
+\par
+\b AuthApiTest.php\par
+\b0
+T001 | Feature | Auth | Login exitoso devuelve token y usuario | POST /api/v1/auth/login | El login responde 200, devuelve token y datos del usuario | tests/Feature/AuthApiTest.php\par
+T002 | Feature | Auth | Login falla con password incorrecto | POST /api/v1/auth/login | Responde 422 con mensaje de credenciales incorrectas | tests/Feature/AuthApiTest.php\par
+T003 | Feature | Auth | Login falla si el usuario esta inactivo | POST /api/v1/auth/login | Responde 403 cuando is_active es false | tests/Feature/AuthApiTest.php\par
+T004 | Feature | Auth | Logout elimina los tokens del usuario | POST /api/v1/auth/logout | Responde 200 y deja sin tokens activos al usuario autenticado | tests/Feature/AuthApiTest.php\par
+T005 | Feature | Auth | Profile devuelve datos del usuario autenticado | GET /api/v1/auth/profile | Responde 200 con el perfil del usuario actual | tests/Feature/AuthApiTest.php\par
+T006 | Feature | Auth | Logout y profile requieren autenticacion | POST/GET endpoints privados de auth | Ambos endpoints responden 401 sin token | tests/Feature/AuthApiTest.php\par
+\par
+\b EventApiTest.php\par
+\b0
+T007 | Feature | Events | Listado publico solo devuelve eventos published | GET /api/v1/events | Un invitado recibe solo eventos publicados | tests/Feature/EventApiTest.php\par
+T008 | Feature | Events | Admin con permiso global ve todos los eventos | GET /api/v1/events | Un admin ve publicados y no publicados | tests/Feature/EventApiTest.php\par
+T009 | Feature | Events | Moderador ve publicados y eventos asignados | GET /api/v1/events | Un moderador ve publicados mas borradores asignados | tests/Feature/EventApiTest.php\par
+T010 | Feature | Events | Detalle publico de evento publicado | GET /api/v1/events/{id} | Un evento publicado responde 200 para invitado | tests/Feature/EventApiTest.php\par
+T011 | Feature | Events | Detalle de evento no publicado responde 404 para invitado | GET /api/v1/events/{id} | Un evento draft no es visible publicamente | tests/Feature/EventApiTest.php\par
+T012 | Feature | Events | Moderador asignado puede ver evento no publicado | GET /api/v1/events/{id} | Un moderador asignado recibe 200 en evento privado | tests/Feature/EventApiTest.php\par
+T013 | Feature | Events | Crear evento lo deja en draft | POST /api/v1/events | Se crea con status draft, form_is_active false y created_by correcto | tests/Feature/EventApiTest.php\par
+T014 | Feature | Events | Crear evento requiere autenticacion | POST /api/v1/events | Sin token responde 401 | tests/Feature/EventApiTest.php\par
+T015 | Feature | Events | Crear evento falla sin permiso | POST /api/v1/events | Usuario sin permiso recibe 403 | tests/Feature/EventApiTest.php\par
+T016 | Feature | Events | Crear evento valida slug y fechas | POST /api/v1/events | slug duplicado y deadline posterior al start_date responden 422 | tests/Feature/EventApiTest.php\par
+T017 | Feature | Events | Actualizar evento con permiso | PATCH /api/v1/events/{id} | Admin autorizado actualiza titulo y fecha final | tests/Feature/EventApiTest.php\par
+T018 | Feature | Events | Actualizar evento falla sin permiso | PATCH /api/v1/events/{id} | Usuario sin permiso recibe 403 | tests/Feature/EventApiTest.php\par
+T019 | Feature | Events | Actualizar evento valida end_date y registration_deadline | PATCH /api/v1/events/{id} | Fechas inconsistentes responden 422 | tests/Feature/EventApiTest.php\par
+T020 | Feature | Events | Eliminar evento hace soft delete | DELETE /api/v1/events/{id} | El registro queda eliminado logicamente | tests/Feature/EventApiTest.php\par
+T021 | Feature | Events | Actualizar estado publica si cumple reglas | PUT /api/v1/events/{id}/status | draft pasa a published cuando el evento esta completo | tests/Feature/EventApiTest.php\par
+T022 | Feature | Events | Actualizar estado falla en transicion invalida | PUT /api/v1/events/{id}/status | draft a closed responde 422 | tests/Feature/EventApiTest.php\par
+T023 | Feature | Events | Publicar evento falla si esta incompleto | PUT /api/v1/events/{id}/status | Falta de titulo o capacity invalida la publicacion | tests/Feature/EventApiTest.php\par
+\par
+\b EventFormApiTest.php\par
+\b0
+T024 | Feature | Event Form | Formulario publico activo se puede consultar | GET /api/v1/events/{id}/form | Evento publicado y activo responde 200 | tests/Feature/EventFormApiTest.php\par
+T025 | Feature | Event Form | Formulario no activo responde 404 para invitado | GET /api/v1/events/{id}/form | Si form_is_active es false no hay acceso publico | tests/Feature/EventFormApiTest.php\par
+T026 | Feature | Event Form | Moderador asignado puede ver formulario no publico | GET /api/v1/events/{id}/form | Usuario con visibilidad del evento accede al schema | tests/Feature/EventFormApiTest.php\par
+T027 | Feature | Event Form | Actualizar schema desactiva formulario | PUT /api/v1/events/{id}/form | Actualizar el schema fuerza form_is_active false | tests/Feature/EventFormApiTest.php\par
+T028 | Feature | Event Form | Actualizar schema falla sin permiso | PUT /api/v1/events/{id}/form | Usuario no autorizado recibe 403 | tests/Feature/EventFormApiTest.php\par
+T029 | Feature | Event Form | Validar schema correcto devuelve is_valid true | POST /api/v1/events/{id}/form/validation | El endpoint marca schema valido y sin errores | tests/Feature/EventFormApiTest.php\par
+T030 | Feature | Event Form | Validar schema incorrecto devuelve errores | POST /api/v1/events/{id}/form/validation | El endpoint marca schema invalido y retorna errores | tests/Feature/EventFormApiTest.php\par
+T031 | Feature | Event Form | Activar formulario publicado y valido | PUT /api/v1/events/{id}/form/activation | El formulario pasa a activo | tests/Feature/EventFormApiTest.php\par
+T032 | Feature | Event Form | Activar formulario falla si el evento no esta publicado | PUT /api/v1/events/{id}/form/activation | Responde 422 por estado invalido | tests/Feature/EventFormApiTest.php\par
+T033 | Feature | Event Form | Activar formulario falla si el schema no es valido | PUT /api/v1/events/{id}/form/activation | Responde 422 por form_schema invalido | tests/Feature/EventFormApiTest.php\par
+T034 | Feature | Event Form | Desactivar formulario funciona | DELETE /api/v1/events/{id}/form/activation | El formulario queda inactivo sin perder configuracion | tests/Feature/EventFormApiTest.php\par
+\par
+\b EventModeratorApiTest.php\par
+\b0
+T035 | Feature | Event Moderators | Listar moderadores de evento publicado | GET /api/v1/events/{id}/moderators | Devuelve evento y moderadores asociados | tests/Feature/EventModeratorApiTest.php\par
+T036 | Feature | Event Moderators | Asignar moderador exitosamente | POST /api/v1/events/{id}/moderators | Crea la relacion evento-moderador | tests/Feature/EventModeratorApiTest.php\par
+T037 | Feature | Event Moderators | Asignar moderador falla si el usuario no tiene rol moderator | POST /api/v1/events/{id}/moderators | Responde 422 por rol incompatible | tests/Feature/EventModeratorApiTest.php\par
+T038 | Feature | Event Moderators | Remover moderador exitosamente | DELETE /api/v1/events/{id}/moderators/{user} | Elimina la relacion del moderador con el evento | tests/Feature/EventModeratorApiTest.php\par
+T039 | Feature | Event Moderators | Asignar y remover moderador falla sin permiso | POST/DELETE moderadores | Usuario no autorizado recibe 403 | tests/Feature/EventModeratorApiTest.php\par
+\par
+\b SubmissionApiTest.php\par
+\b0
+T040 | Feature | Submissions | Crear submission individual valida | POST /api/v1/events/{id}/submissions | Crea postulacion individual con status pending | tests/Feature/SubmissionApiTest.php\par
+T041 | Feature | Submissions | Crear submission de equipo valida | POST /api/v1/events/{id}/submissions | Crea submission team y miembros asociados | tests/Feature/SubmissionApiTest.php\par
+T042 | Feature | Submissions | Submission falla si el evento no esta publicado | POST /api/v1/events/{id}/submissions | Responde 422 por evento no disponible | tests/Feature/SubmissionApiTest.php\par
+T043 | Feature | Submissions | Submission falla si el formulario no esta activo | POST /api/v1/events/{id}/submissions | Responde 422 por formulario inactivo | tests/Feature/SubmissionApiTest.php\par
+T044 | Feature | Submissions | Submission falla si el deadline vencio | POST /api/v1/events/{id}/submissions | Responde 422 por fecha limite excedida | tests/Feature/SubmissionApiTest.php\par
+T045 | Feature | Submissions | Submission falla si no hay cupos | POST /api/v1/events/{id}/submissions | Responde 422 cuando la capacidad esta agotada | tests/Feature/SubmissionApiTest.php\par
+T046 | Feature | Submissions | Submission falla si no permite equipos | POST /api/v1/events/{id}/submissions | Responde 422 por participation_type no permitido | tests/Feature/SubmissionApiTest.php\par
+T047 | Feature | Submissions | Submission de equipo requiere un solo capitan | POST /api/v1/events/{id}/submissions | Responde 422 si no existe exactamente un capitan | tests/Feature/SubmissionApiTest.php\par
+T048 | Feature | Submissions | Submission valida campos dinamicos del schema | POST /api/v1/events/{id}/submissions | form_answers se valida contra form_schema | tests/Feature/SubmissionApiTest.php\par
+T049 | Feature | Submissions | Submission no repite email dentro del mismo evento | POST /api/v1/events/{id}/submissions | Un segundo envio con mismo email en el evento responde 422 | tests/Feature/SubmissionApiTest.php\par
+T050 | Feature | Submissions | Submission permite mismo email en eventos distintos | POST /api/v1/events/{id}/submissions | El mismo email puede postular a otro evento | tests/Feature/SubmissionApiTest.php\par
+T051 | Feature | Submissions | Admin puede listar submissions de evento | GET /api/v1/events/{id}/submissions | Usuario con visibilidad global recibe el listado | tests/Feature/SubmissionApiTest.php\par
+T052 | Feature | Submissions | Moderador asignado puede listar y ver submission | GET list/show submissions | Un moderador asignado ve listado y detalle | tests/Feature/SubmissionApiTest.php\par
+T053 | Feature | Submissions | Usuario sin acceso no puede listar ni ver submission | GET list/show submissions | El listado devuelve 403 y el detalle 404 | tests/Feature/SubmissionApiTest.php\par
+T054 | Feature | Submissions | Revisar submission aprobada guarda auditoria | PATCH /api/v1/submissions/{id}/review | Guarda status, reviewer y reviewed_by | tests/Feature/SubmissionApiTest.php\par
+T055 | Feature | Submissions | Revisar submission falla sin permiso o asignacion | PATCH /api/v1/submissions/{id}/review | Usuario no autorizado recibe 403 | tests/Feature/SubmissionApiTest.php\par
+T056 | Feature | Submissions | Revisar submission valida status y longitud de comentario | PATCH /api/v1/submissions/{id}/review | status invalido o comentario largo responden 422 | tests/Feature/SubmissionApiTest.php\par
+\par
+\b UserApiTest.php\par
+\b0
+T057 | Feature | Users | Admin puede listar usuarios | GET /api/v1/users | Devuelve el listado de usuarios cuando hay permiso | tests/Feature/UserApiTest.php\par
+T058 | Feature | Users | Listar usuarios falla sin permiso | GET /api/v1/users | Usuario sin permiso recibe 403 | tests/Feature/UserApiTest.php\par
+T059 | Feature | Users | Admin puede crear usuario con roles | POST /api/v1/users | Crea usuario y sincroniza roles iniciales | tests/Feature/UserApiTest.php\par
+T060 | Feature | Users | Crear usuario valida email password y roles | POST /api/v1/users | Email duplicado, password corta y rol inexistente responden 422 | tests/Feature/UserApiTest.php\par
+T061 | Feature | Users | Admin puede ver detalle de usuario | GET /api/v1/users/{id} | Devuelve datos del usuario solicitado | tests/Feature/UserApiTest.php\par
+T062 | Feature | Users | Usuario puede actualizar su propio perfil | PATCH /api/v1/users/{id} | El propio usuario actualiza nombre y email | tests/Feature/UserApiTest.php\par
+T063 | Feature | Users | Admin puede actualizar usuario gestionable | PATCH /api/v1/users/{id} | Admin actualiza atributos de un moderador | tests/Feature/UserApiTest.php\par
+T064 | Feature | Users | Actualizar usuario admin falla | PATCH /api/v1/users/{id} | No se permite gestionar cuentas admin desde este flujo | tests/Feature/UserApiTest.php\par
+T065 | Feature | Users | Admin puede eliminar y restaurar usuario | DELETE/PUT restore user | Realiza soft delete y posterior restauracion | tests/Feature/UserApiTest.php\par
+T066 | Feature | Users | No se puede eliminar usuario admin | DELETE /api/v1/users/{id} | Un admin objetivo no puede ser eliminado | tests/Feature/UserApiTest.php\par
+T067 | Feature | Users | Admin puede activar y desactivar usuario | DELETE/PUT activation user | Cambia is_active a false y luego a true | tests/Feature/UserApiTest.php\par
+T068 | Feature | Users | Admin puede consultar y sincronizar roles | GET/PUT user roles | Devuelve roles y luego los sincroniza | tests/Feature/UserApiTest.php\par
+T069 | Feature | Users | Sincronizar roles valida entrada y bloquea admins | PUT /api/v1/users/{id}/roles | roles vacio responde 422 y target admin responde 403 | tests/Feature/UserApiTest.php\par
+\par
+\b EventLifecycleServiceTest.php\par
+\b0
+T070 | Unit | EventLifecycleService | Permite transicion valida | Servicio de ciclo de vida | draft a published funciona | tests/Unit/EventLifecycleServiceTest.php\par
+T071 | Unit | EventLifecycleService | Rechaza transicion invalida | Servicio de ciclo de vida | draft a closed lanza ValidationException | tests/Unit/EventLifecycleServiceTest.php\par
+T072 | Unit | EventLifecycleService | No modifica nada si el estado destino es igual | Servicio de ciclo de vida | Retorna el mismo evento sin cambios | tests/Unit/EventLifecycleServiceTest.php\par
+T073 | Unit | EventLifecycleService | Publicar exige titulo y descripcion | Servicio de ciclo de vida | La publicacion falla si faltan campos de texto base | tests/Unit/EventLifecycleServiceTest.php\par
+T074 | Unit | EventLifecycleService | Publicar exige registration_deadline y start_date | Servicio de ciclo de vida | La publicacion falla si faltan fechas clave | tests/Unit/EventLifecycleServiceTest.php\par
+T075 | Unit | EventLifecycleService | Publicar exige capacity mayor a cero | Servicio de ciclo de vida | capacity cero invalida la publicacion | tests/Unit/EventLifecycleServiceTest.php\par
+T076 | Unit | EventLifecycleService | Publicar exige deadline antes o igual a fecha de inicio | Servicio de ciclo de vida | registration_deadline posterior al inicio invalida | tests/Unit/EventLifecycleServiceTest.php\par
+\par
+\b EventFormServiceTest.php\par
+\b0
+T077 | Unit | EventFormService | Update schema guarda y desactiva formulario | Servicio de formulario | Persiste schema y deja form_is_active false | tests/Unit/EventFormServiceTest.php\par
+T078 | Unit | EventFormService | Validate schema falla si esta vacio | Servicio de formulario | Un schema vacio retorna errores | tests/Unit/EventFormServiceTest.php\par
+T079 | Unit | EventFormService | Validate schema detecta validation invalida | Servicio de formulario | Reglas Laravel mal formadas retornan error | tests/Unit/EventFormServiceTest.php\par
+T080 | Unit | EventFormService | Validate schema exige options para select y radio | Servicio de formulario | Campos select/radio sin options generan errores | tests/Unit/EventFormServiceTest.php\par
+T081 | Unit | EventFormService | Activate activa formulario publicado y valido | Servicio de formulario | Un evento published con schema valido se activa | tests/Unit/EventFormServiceTest.php\par
+T082 | Unit | EventFormService | Activate falla si evento no esta publicado | Servicio de formulario | Un evento draft no puede activar formulario | tests/Unit/EventFormServiceTest.php\par
+T083 | Unit | EventFormService | Ensure submission enabled valida estado, formulario y deadline | Servicio de formulario | Lanza ValidationException ante condiciones no habilitadas | tests/Unit/EventFormServiceTest.php\par
+\par
+\b SubmitFormServiceTest.php\par
+\b0
+T084 | Unit | SubmitFormService | Crea submission individual | Servicio de envio | Genera submission pending sin miembros | tests/Unit/SubmitFormServiceTest.php\par
+T085 | Unit | SubmitFormService | Crea submission de equipo con miembros | Servicio de envio | Genera submission team con miembros asociados | tests/Unit/SubmitFormServiceTest.php\par
+T086 | Unit | SubmitFormService | Falla si no hay cupos disponibles | Servicio de envio | Lanza ValidationException cuando la capacidad esta agotada | tests/Unit/SubmitFormServiceTest.php\par
+T087 | Unit | SubmitFormService | Cuenta rechazadas como no ocupantes de cupo | Servicio de envio | Submissions rechazadas no consumen capacidad | tests/Unit/SubmitFormServiceTest.php\par
+\par
+\b UserManagementServiceTest.php\par
+\b0
+T088 | Unit | UserManagementService | Update managed user falla sobre admin | Servicio de usuarios | No permite actualizar cuentas admin | tests/Unit/UserManagementServiceTest.php\par
+T089 | Unit | UserManagementService | Soft delete y restore funcionan en usuario gestionable | Servicio de usuarios | El usuario se elimina logicamente y luego se restaura | tests/Unit/UserManagementServiceTest.php\par
+T090 | Unit | UserManagementService | Activate y deactivate cambian el estado | Servicio de usuarios | is_active cambia a false y luego a true | tests/Unit/UserManagementServiceTest.php\par
+T091 | Unit | UserManagementService | Sync roles reemplaza roles | Servicio de usuarios | Sincroniza completamente el set de roles | tests/Unit/UserManagementServiceTest.php\par
+T092 | Unit | UserManagementService | Sync roles falla con arreglo vacio | Servicio de usuarios | Lanzamiento de ValidationException por roles vacios | tests/Unit/UserManagementServiceTest.php\par
+\par
+\b AuthorizationAndModelTest.php\par
+\b0
+T093 | Unit | Policies | EventPolicy permite evento publicado a cualquiera | Politica EventPolicy | Un evento published siempre es visible | tests/Unit/AuthorizationAndModelTest.php\par
+T094 | Unit | Policies | EventPolicy permite moderador asignado en evento no publicado | Politica EventPolicy | Moderador asignado puede ver evento privado | tests/Unit/AuthorizationAndModelTest.php\par
+T095 | Unit | Policies | SubmissionPolicy permite ver y revisar a moderador asignado | Politica SubmissionPolicy | Moderador asignado puede ver y revisar la submission | tests/Unit/AuthorizationAndModelTest.php\par
+T096 | Unit | Policies | SubmissionPolicy niega usuario no asignado | Politica SubmissionPolicy | Un moderador no asignado no puede ver la submission | tests/Unit/AuthorizationAndModelTest.php\par
+T097 | Unit | Policies | UserPolicy permite edicion propia a moderador | Politica UserPolicy | Un moderador puede editar su propio perfil | tests/Unit/AuthorizationAndModelTest.php\par
+T098 | Unit | Policies | UserPolicy niega operaciones sobre admin objetivo | Politica UserPolicy | No permite delete ni syncRoles sobre target admin | tests/Unit/AuthorizationAndModelTest.php\par
+T099 | Unit | Models | Event available spots count descuenta solo pending y approved | Modelo Event | El conteo de cupos ignora submissions rejected | tests/Unit/AuthorizationAndModelTest.php\par
+T100 | Unit | Models | Submission occupying statuses son pending y approved | Modelo Submission | La lista de estados ocupantes coincide con la regla de negocio | tests/Unit/AuthorizationAndModelTest.php\par
+\par
+\b Notas de uso\par
+\b0
+1. Esta matriz refleja la suite automatizada actual y no agrega cobertura nueva.\par
+2. Los casos Feature ejecutan rutas, requests, policies, servicios y persistencia real de testing.\par
+3. La suite corre con sqlite en memoria segun phpunit.xml; si deseas validar contra tu motor real, usa esta matriz como guia de trazabilidad.\par
+}
