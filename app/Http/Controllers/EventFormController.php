@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace App\Http\Controllers;
 
 use App\Http\Requests\UpdateEventFormRequest;
+use App\Http\Resources\EventFormResource;
+use App\Http\Resources\EventFormSchemaValidationResource;
 use App\Models\Event;
 use App\Models\User;
 use App\Services\EventFormService;
@@ -44,11 +46,7 @@ class EventFormController extends Controller
 
         return response()->json([
             'message' => 'Event form schema updated successfully.',
-            'data' => [
-                'event_id' => $updatedEvent->id,
-                'form_is_active' => $updatedEvent->form_is_active,
-                'form_schema' => $updatedEvent->form_schema,
-            ],
+            'data' => new EventFormResource($updatedEvent),
         ]);
     }
 
@@ -61,11 +59,11 @@ class EventFormController extends Controller
 
         return response()->json([
             'message' => 'Event form schema validation completed.',
-            'data' => [
+            'data' => new EventFormSchemaValidationResource([
                 'event_id' => $event->id,
                 'is_valid' => $errors === [],
                 'errors' => $errors,
-            ],
+            ]),
         ]);
     }
 
@@ -78,10 +76,7 @@ class EventFormController extends Controller
 
         return response()->json([
             'message' => 'Event form activated successfully.',
-            'data' => [
-                'event_id' => $activatedEvent->id,
-                'form_is_active' => $activatedEvent->form_is_active,
-            ],
+            'data' => new EventFormResource($activatedEvent),
         ]);
     }
 
@@ -94,10 +89,7 @@ class EventFormController extends Controller
 
         return response()->json([
             'message' => 'Event form deactivated successfully.',
-            'data' => [
-                'event_id' => $deactivatedEvent->id,
-                'form_is_active' => $deactivatedEvent->form_is_active,
-            ],
+            'data' => new EventFormResource($deactivatedEvent),
         ]);
     }
 
@@ -106,11 +98,7 @@ class EventFormController extends Controller
     {
         return response()->json([
             'message' => $message,
-            'data' => [
-                'event_id' => $event->id,
-                'form_is_active' => $event->form_is_active,
-                'form_schema' => $event->form_schema ?? [],
-            ],
+            'data' => new EventFormResource($event),
         ]);
     }
 
