@@ -4,7 +4,7 @@ namespace App\Policies;
 
 use App\Models\Event;
 use App\Models\User;
-use Database\Seeders\PermissionName;
+use Database\Seeders\PermissionCatalog;
 
 class EventPolicy
 {
@@ -15,8 +15,8 @@ class EventPolicy
             return true;
         }
 
-        return $user->hasPermissionTo(PermissionName::VIEW_ANY_EVENT->value)
-            || $user->hasPermissionTo(PermissionName::VIEW_OWN_EVENT->value);
+        return $user->hasPermissionTo(PermissionCatalog::ALL['view_any_event'])
+            || $user->hasPermissionTo(PermissionCatalog::ALL['view_own_event']);
     }
 
     // Published events are public; non-published events require permission-based visibility.
@@ -30,11 +30,11 @@ class EventPolicy
             return false;
         }
 
-        if ($user->hasPermissionTo(PermissionName::VIEW_ANY_EVENT->value)) {
+        if ($user->hasPermissionTo(PermissionCatalog::ALL['view_any_event'])) {
             return true;
         }
 
-        if (! $user->hasPermissionTo(PermissionName::VIEW_OWN_EVENT->value)) {
+        if (! $user->hasPermissionTo(PermissionCatalog::ALL['view_own_event'])) {
             return false;
         }
 
@@ -43,22 +43,22 @@ class EventPolicy
 
     public function create(User $user): bool
     {
-        return $user->hasPermissionTo(PermissionName::CREATE_EVENT->value);
+        return $user->hasPermissionTo(PermissionCatalog::ALL['create_event']);
     }
 
     public function update(User $user, Event $event): bool
     {
-        return $user->hasPermissionTo(PermissionName::UPDATE_EVENT->value);
+        return $user->hasPermissionTo(PermissionCatalog::ALL['update_event']);
     }
 
     public function delete(User $user, Event $event): bool
     {
-        return $user->hasPermissionTo(PermissionName::DELETE_EVENT->value);
+        return $user->hasPermissionTo(PermissionCatalog::ALL['delete_event']);
     }
 
     public function restore(User $user, Event $event): bool
     {
-        return $user->hasPermissionTo(PermissionName::DELETE_EVENT->value);
+        return $user->hasPermissionTo(PermissionCatalog::ALL['delete_event']);
     }
 
     public function forceDelete(User $user, Event $event): bool
@@ -68,12 +68,12 @@ class EventPolicy
 
     public function updateStatus(User $user, Event $event): bool
     {
-        return $user->hasPermissionTo(PermissionName::UPDATE_EVENT->value);
+        return $user->hasPermissionTo(PermissionCatalog::ALL['update_event']);
     }
 
     public function updateForm(User $user, Event $event): bool
     {
-        return $user->hasPermissionTo(PermissionName::UPDATE_EVENT->value);
+        return $user->hasPermissionTo(PermissionCatalog::ALL['update_event']);
     }
 
     // Moderator listing mirrors event visibility.
@@ -83,13 +83,13 @@ class EventPolicy
             return true;
         }
 
-        return $user->hasPermissionTo(PermissionName::VIEW_ANY_EVENT->value)
-            || ($user->hasPermissionTo(PermissionName::VIEW_OWN_EVENT->value) && $this->isAssignedModerator($user, $event));
+        return $user->hasPermissionTo(PermissionCatalog::ALL['view_any_event'])
+            || ($user->hasPermissionTo(PermissionCatalog::ALL['view_own_event']) && $this->isAssignedModerator($user, $event));
     }
 
     public function assignModerators(User $user, Event $event): bool
     {
-        return $user->hasPermissionTo(PermissionName::ASSIGN_EVENT_MODERATORS->value);
+        return $user->hasPermissionTo(PermissionCatalog::ALL['assign_event_moderators']);
     }
 
     private function isAssignedModerator(User $user, Event $event): bool

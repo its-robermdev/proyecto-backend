@@ -3,28 +3,28 @@
 namespace App\Policies;
 
 use App\Models\User;
-use Database\Seeders\PermissionName;
+use Database\Seeders\PermissionCatalog;
 
 class UserPolicy
 {
     public function viewAny(User $user): bool
     {
-        return $user->hasPermissionTo(PermissionName::MANAGE_MODERATOR_PROFILES->value);
+        return $user->hasPermissionTo(PermissionCatalog::ALL['manage_moderator_profiles']);
     }
 
     public function view(User $user, User $model): bool
     {
-        return $user->hasPermissionTo(PermissionName::MANAGE_MODERATOR_PROFILES->value);
+        return $user->hasPermissionTo(PermissionCatalog::ALL['manage_moderator_profiles']);
     }
 
     public function create(User $user): bool
     {
-        return $user->hasPermissionTo(PermissionName::MANAGE_MODERATOR_PROFILES->value);
+        return $user->hasPermissionTo(PermissionCatalog::ALL['manage_moderator_profiles']);
     }
 
     public function update(User $actor, User $target): bool
     {
-        if ($actor->is($target) && $actor->hasPermissionTo(PermissionName::EDIT_OWN_PROFILE->value)) {
+        if ($actor->is($target) && $actor->hasPermissionTo(PermissionCatalog::ALL['edit_own_profile'])) {
             return true;
         }
 
@@ -32,7 +32,7 @@ class UserPolicy
             return false;
         }
 
-        if ($actor->hasPermissionTo(PermissionName::MANAGE_MODERATOR_PROFILES->value)) {
+        if ($actor->hasPermissionTo(PermissionCatalog::ALL['manage_moderator_profiles'])) {
             return true;
         }
 
@@ -45,7 +45,7 @@ class UserPolicy
             return false;
         }
 
-        return $actor->hasPermissionTo(PermissionName::MANAGE_MODERATOR_PROFILES->value);
+        return $actor->hasPermissionTo(PermissionCatalog::ALL['manage_moderator_profiles']);
     }
 
     public function restore(User $actor, User $target): bool
@@ -54,7 +54,7 @@ class UserPolicy
             return false;
         }
 
-        return $actor->hasPermissionTo(PermissionName::MANAGE_MODERATOR_PROFILES->value);
+        return $actor->hasPermissionTo(PermissionCatalog::ALL['manage_moderator_profiles']);
     }
 
     public function roles(User $actor, User $target): bool
@@ -68,7 +68,7 @@ class UserPolicy
             return false;
         }
 
-        return $actor->hasPermissionTo(PermissionName::MANAGE_MODERATOR_PROFILES->value);
+        return $actor->hasPermissionTo(PermissionCatalog::ALL['manage_moderator_profiles']);
     }
 
     public function activate(User $actor, User $target): bool
@@ -77,7 +77,7 @@ class UserPolicy
             return false;
         }
 
-        return $actor->hasPermissionTo(PermissionName::MANAGE_MODERATOR_PROFILES->value);
+        return $actor->hasPermissionTo(PermissionCatalog::ALL['manage_moderator_profiles']);
     }
 
     public function deactivate(User $actor, User $target): bool
@@ -86,6 +86,6 @@ class UserPolicy
             return false;
         }
 
-        return $actor->hasPermissionTo(PermissionName::MANAGE_MODERATOR_PROFILES->value);
+        return $actor->hasPermissionTo(PermissionCatalog::ALL['manage_moderator_profiles']);
     }
 }
