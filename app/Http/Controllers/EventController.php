@@ -1,7 +1,5 @@
 <?php
 
-declare(strict_types=1);
-
 namespace App\Http\Controllers;
 
 use App\Http\Requests\StoreEventRequest;
@@ -9,21 +7,28 @@ use App\Http\Requests\UpdateEventRequest;
 use App\Http\Resources\EventResource;
 use App\Models\Event;
 use App\Models\User;
+use Database\Seeders\PermissionName;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
+use Illuminate\Support\Facades\Gate;
 
 class EventController extends Controller
 {
-    // Lista eventos según visibilidad: público, moderador asignado o admin.
+    public function __construct()
+    {
+        $this->authorizeResource(Event::class, 'event', ['except' => ['show']]);
+    }
+
+    // Lista eventos segun visibilidad publica o permisos del usuario autenticado.
     public function index(Request $request): AnonymousResourceCollection
     {
         $query = Event::query()->latest();
         $user = $request->user();
 
-        if ($user instanceof User && $user->hasRole('admin')) {
-            // Admin can list every event.
-        } elseif ($user instanceof User && $user->hasRole('moderator')) {
+        if ($user instanceof User && $user->hasPermissionTo(PermissionName::VIEW_ANY_EVENT->value)) {
+            // Global visibility keeps the full list.
+        } elseif ($user instanceof User && $user->hasPermissionTo(PermissionName::VIEW_OWN_EVENT->value)) {
             $query->where(function ($query) use ($user): void {
                 $query->where('status', 'published')
                     ->orWhereHas('moderators', fn ($moderatorQuery) => $moderatorQuery->where('users.id', $user->id));
@@ -33,13 +38,17 @@ class EventController extends Controller
         }
 
         return EventResource::collection($query->paginate())
-            ->additional(['message' => 'Events retrieved successfully.']);
+            ->additional([
+                'message' => 'Events retrieved successfully.',
+                'status' => 200,
+            ]);
     }
 
     // Crea eventos en estado draft y asigna creador.
     public function store(StoreEventRequest $request): JsonResponse
     {
-        $user = $this->ensureAdmin($request);
+        /** @var User $user */
+        $user = $request->user();
         $payload = $request->validated();
 
         $event = Event::create([
@@ -52,75 +61,45 @@ class EventController extends Controller
         return response()->json([
             'message' => 'Event created successfully.',
             'data' => new EventResource($event),
+            'status' => 201,
         ], 201);
     }
 
     // Devuelve detalle del evento si el usuario tiene visibilidad.
     public function show(Request $request, Event $event): JsonResponse
     {
-        abort_unless($this->canViewEvent($request->user(), $event), 404, 'Event not found.');
+        if (! Gate::allows('view', $event)) {
+            return $this->notFoundResponse('Event not found.');
+        }
 
         return response()->json([
             'message' => 'Event retrieved successfully.',
             'data' => new EventResource($event),
-        ]);
+            'status' => 200,
+        ], 200);
     }
 
-    // Actualiza metadatos del evento (solo admin).
+    // Actualiza metadatos del evento.
     public function update(UpdateEventRequest $request, Event $event): JsonResponse
     {
-        $this->ensureAdmin($request);
         $event->update($request->validated());
 
         return response()->json([
             'message' => 'Event updated successfully.',
             'data' => new EventResource($event->refresh()),
-        ]);
+            'status' => 200,
+        ], 200);
     }
 
-    // Soft delete del evento (solo admin).
+    // Soft delete del evento.
     public function destroy(Request $request, Event $event): JsonResponse
     {
-        $this->ensureAdmin($request);
         $event->delete();
 
         return response()->json([
             'message' => 'Event deleted successfully.',
-            'data' => null,
-        ]);
-    }
-
-    // Centraliza validación de rol admin para acciones de escritura.
-    private function ensureAdmin(Request $request): User
-    {
-        $user = $request->user();
-
-        abort_unless($user instanceof User && $user->hasRole('admin'), 403, 'Only admins can perform this action.');
-
-        return $user;
-    }
-
-    // Evalúa reglas de lectura por estado y asignación de moderador.
-    private function canViewEvent(?User $user, Event $event): bool
-    {
-        if ($event->status === 'published') {
-            return true;
-        }
-
-        if (! $user instanceof User) {
-            return false;
-        }
-
-        if ($user->hasRole('admin')) {
-            return true;
-        }
-
-        if (! $user->hasRole('moderator')) {
-            return false;
-        }
-
-        return $event->moderators()
-            ->where('users.id', $user->id)
-            ->exists();
+            'data' => new EventResource($event),
+            'status' => 200,
+        ], 200);
     }
 }

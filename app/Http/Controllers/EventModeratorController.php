@@ -1,42 +1,39 @@
 <?php
 
-declare(strict_types=1);
-
 namespace App\Http\Controllers;
 
+use App\Http\Resources\EventResource;
+use App\Http\Resources\UserResource;
 use App\Http\Requests\StoreEventModeratorRequest;
 use App\Models\Event;
 use App\Models\User;
 use App\Services\EventModeratorService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Gate;
 
 class EventModeratorController extends Controller
 {
     // Lista moderadores/responsables asociados al evento.
     public function index(Request $request, Event $event): JsonResponse
     {
+        /** @var User $user */
         $user = $request->user();
 
-        abort_unless(
-            $user instanceof User && $this->canInspectModerators($user, $event),
-            403,
-            'You are not allowed to inspect event moderators.',
-        );
+        if ($user->cannot('inspectModerators', $event)) {
+            return $this->notFoundResponse('Event not found.');
+        }
 
         $event->load('moderators:id,name,email');
 
         return response()->json([
             'message' => 'Event moderators retrieved successfully.',
             'data' => [
-                'event_id' => $event->id,
-                'moderators' => $event->moderators->map(fn (User $moderator): array => [
-                    'id' => $moderator->id,
-                    'name' => $moderator->name,
-                    'email' => $moderator->email,
-                ])->values(),
+                'event' => new EventResource($event),
+                'moderators' => UserResource::collection($event->moderators),
             ],
-        ]);
+            'status' => 200,
+        ], 200);
     }
 
     // Asigna un usuario moderador al evento.
@@ -45,7 +42,9 @@ class EventModeratorController extends Controller
         Event $event,
         EventModeratorService $eventModeratorService,
     ): JsonResponse {
-        $this->ensureAdmin($request);
+        if (! Gate::allows('assignModerators', $event)) {
+            return $this->forbiddenResponse('You are not allowed to assign moderators to this event.');
+        }
 
         $assignedModerator = $eventModeratorService->assign(
             $event,
@@ -55,59 +54,31 @@ class EventModeratorController extends Controller
         return response()->json([
             'message' => 'Moderator assigned to event successfully.',
             'data' => [
-                'event_id' => $event->id,
-                'moderator' => [
-                    'id' => $assignedModerator->id,
-                    'name' => $assignedModerator->name,
-                    'email' => $assignedModerator->email,
-                ],
+                'event' => new EventResource($event),
+                'moderator' => new UserResource($assignedModerator),
             ],
+            'status' => 201,
         ], 201);
     }
 
-    // Remueve la asignación de moderador para un evento.
+    // Remueve la asignacion de moderador para un evento.
     public function destroy(
         Request $request,
         Event $event,
         User $user,
         EventModeratorService $eventModeratorService,
     ): JsonResponse {
-        $this->ensureAdmin($request);
+        if (! Gate::allows('assignModerators', $event)) {
+            return $this->forbiddenResponse('You are not allowed to remove moderators from this event.');
+        }
+
+        $user->load('roles');
         $eventModeratorService->remove($event, $user);
 
         return response()->json([
             'message' => 'Moderator removed from event successfully.',
-            'data' => null,
-        ]);
-    }
-
-    // Verifica rol admin para mutaciones de responsables.
-    private function ensureAdmin(Request $request): User
-    {
-        $user = $request->user();
-
-        abort_unless($user instanceof User && $user->hasRole('admin'), 403, 'Only admins can perform this action.');
-
-        return $user;
-    }
-
-    // Define si un usuario puede consultar responsables del evento.
-    private function canInspectModerators(User $user, Event $event): bool
-    {
-        if ($user->hasRole('admin')) {
-            return true;
-        }
-
-        if (! $user->hasRole('moderator')) {
-            return false;
-        }
-
-        if ($event->status === 'published') {
-            return true;
-        }
-
-        return $event->moderators()
-            ->where('users.id', $user->id)
-            ->exists();
+            'data' => new UserResource($user),
+            'status' => 200,
+        ], 200);
     }
 }

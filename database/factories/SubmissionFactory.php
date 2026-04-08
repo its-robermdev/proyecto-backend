@@ -1,7 +1,5 @@
 <?php
 
-declare(strict_types=1);
-
 namespace Database\Factories;
 
 use App\Models\Event;
@@ -20,7 +18,11 @@ class SubmissionFactory extends Factory
     public function definition(): array
     {
         $type = fake()->randomElement(['individual', 'team']);
-        $status = fake()->randomElement(['submitted', 'approved', 'rejected']);
+        $status = fake()->randomElement([
+            Submission::STATUS_PENDING,
+            Submission::STATUS_APPROVED,
+            Submission::STATUS_REJECTED,
+        ]);
 
         return [
             'event_id' => Event::inRandomOrder()->first()?->id ?? Event::factory(),
@@ -29,7 +31,7 @@ class SubmissionFactory extends Factory
             'participation_type' => $type,
             'team_name' => $type === 'team' ? fake()->company().' Team' : null,
             'status' => $status,
-            'review_comment' => $status === 'rejected' ? fake()->sentence() : null,
+            'review_comment' => $status === Submission::STATUS_REJECTED ? fake()->sentence() : null,
             'reviewed_by' => null,
             'reviewed_at' => null,
             'form_answers' => [],

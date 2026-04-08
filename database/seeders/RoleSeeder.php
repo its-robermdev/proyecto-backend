@@ -10,7 +10,10 @@ class RoleSeeder extends Seeder
     // Crea roles base usados por authorization en la API.
     public function run(): void
     {
-        Role::create(['name' => 'admin']);
-        Role::create(['name' => 'moderator']);
+        $adminRole = Role::findOrCreate('admin', 'api');
+        $moderatorRole = Role::findOrCreate('moderator', 'api');
+
+        $adminRole->syncPermissions(PermissionName::admin());
+        $moderatorRole->syncPermissions(PermissionName::moderator());
     }
 }

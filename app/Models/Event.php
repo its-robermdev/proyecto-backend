@@ -1,7 +1,5 @@
 <?php
 
-declare(strict_types=1);
-
 namespace App\Models;
 
 use Database\Factories\EventFactory;
@@ -57,7 +55,29 @@ class Event extends Model
         return $this->hasMany(Submission::class);
     }
 
-    // Usuario administrador que creó el evento.
+    // Indica si el evento aun tiene cupos disponibles segun submissions vigentes.
+    public function hasAvailableSpots(): bool
+    {
+        return $this->availableSpotsCount() > 0;
+    }
+
+    // Calcula cupos disponibles restando pending+approved de la capacidad total.
+    public function availableSpotsCount(): int
+    {
+        $capacity = max((int) $this->capacity, 0);
+
+        if ($capacity === 0) {
+            return 0;
+        }
+
+        $occupiedSpots = $this->submissions()
+            ->whereIn('status', Submission::occupyingStatuses())
+            ->count();
+
+        return max($capacity - $occupiedSpots, 0);
+    }
+
+    // Usuario administrador que creo el evento.
     public function creator(): BelongsTo
     {
         return $this->belongsTo(User::class, 'created_by');

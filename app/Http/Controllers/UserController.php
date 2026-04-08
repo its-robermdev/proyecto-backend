@@ -1,7 +1,5 @@
 <?php
 
-declare(strict_types=1);
-
 namespace App\Http\Controllers;
 
 use App\Http\Requests\StoreUserRequest;
@@ -13,21 +11,28 @@ use App\Services\UserManagementService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
+use Illuminate\Support\Arr;
 
 class UserController extends Controller
 {
-    // Lista usuarios para administración interna.
+    public function __construct()
+    {
+        $this->authorizeResource(User::class, 'user', ['except' => ['show']]);
+    }
+
+    // Lista usuarios para administracion interna.
     public function index(Request $request): AnonymousResourceCollection
     {
-        $this->ensureAdmin($request);
-
         $users = User::query()
             ->with('roles')
             ->latest()
             ->paginate();
 
         return UserResource::collection($users)
-            ->additional(['message' => 'Users retrieved successfully.']);
+            ->additional([
+                'message' => 'Users retrieved successfully.',
+                'status' => 200,
+            ]);
     }
 
     // Crea usuario y asigna roles iniciales opcionales.
@@ -35,56 +40,67 @@ class UserController extends Controller
         StoreUserRequest $request,
         UserManagementService $userManagementService,
     ): JsonResponse {
-        $this->ensureAdmin($request);
-
         $user = $userManagementService->create($request->validated());
 
         return response()->json([
             'message' => 'User created successfully.',
             'data' => new UserResource($user->load('roles')),
+            'status' => 201,
         ], 201);
     }
 
     // Muestra detalle de usuario con roles.
     public function show(Request $request, User $user): JsonResponse
     {
-        $this->ensureAdmin($request);
+        /** @var User $actor */
+        $actor = $request->user();
+
+        if ($actor->cannot('view', $user)) {
+            return $this->notFoundResponse('User not found.');
+        }
 
         return response()->json([
             'message' => 'User retrieved successfully.',
             'data' => new UserResource($user->load('roles')),
-        ]);
+            'status' => 200,
+        ], 200);
     }
 
-    // Actualiza datos básicos del usuario.
+    // Actualiza datos basicos del usuario.
     public function update(
         UpdateUserRequest $request,
         User $user,
         UserManagementService $userManagementService,
     ): JsonResponse {
-        $this->ensureAdmin($request);
+        /** @var User $actor */
+        $actor = $request->user();
+        $validated = $request->validated();
 
-        $updatedUser = $userManagementService->update($user, $request->validated());
+        $updatedUser = $actor->is($user)
+            ? $userManagementService->updateProfile($user, Arr::only($validated, ['name', 'email', 'password']))
+            : $userManagementService->updateManagedUser($user, $validated);
 
         return response()->json([
             'message' => 'User updated successfully.',
             'data' => new UserResource($updatedUser->load('roles')),
-        ]);
+            'status' => 200,
+        ], 200);
     }
 
-    // Elimina lógicamente al usuario.
+    // Elimina logicamente al usuario.
     public function destroy(
         Request $request,
         User $user,
         UserManagementService $userManagementService,
     ): JsonResponse {
-        $this->ensureAdmin($request);
+        $user->load('roles');
         $userManagementService->softDelete($user);
 
         return response()->json([
             'message' => 'User deleted successfully.',
-            'data' => null,
-        ]);
+            'data' => new UserResource($user),
+            'status' => 200,
+        ], 200);
     }
 
     // Restaura usuario previamente eliminado (soft delete).
@@ -93,14 +109,25 @@ class UserController extends Controller
         int $user,
         UserManagementService $userManagementService,
     ): JsonResponse {
-        $this->ensureAdmin($request);
+        /** @var User $actor */
+        $actor = $request->user();
+        $targetUser = User::withTrashed()->find($user);
+
+        if (! $targetUser instanceof User) {
+            return $this->notFoundResponse('User not found.');
+        }
+
+        if ($actor->cannot('restore', $targetUser)) {
+            return $this->forbiddenResponse('You are not allowed to restore this user.');
+        }
 
         $restoredUser = $userManagementService->restore($user);
 
         return response()->json([
             'message' => 'User restored successfully.',
             'data' => new UserResource($restoredUser->load('roles')),
-        ]);
+            'status' => 200,
+        ], 200);
     }
 
     // Activa acceso del usuario en el sistema.
@@ -109,14 +136,20 @@ class UserController extends Controller
         User $user,
         UserManagementService $userManagementService,
     ): JsonResponse {
-        $this->ensureAdmin($request);
+        /** @var User $actor */
+        $actor = $request->user();
+
+        if ($actor->cannot('activate', $user)) {
+            return $this->forbiddenResponse('You are not allowed to activate this user.');
+        }
 
         $activatedUser = $userManagementService->activate($user);
 
         return response()->json([
             'message' => 'User activated successfully.',
             'data' => new UserResource($activatedUser->load('roles')),
-        ]);
+            'status' => 200,
+        ], 200);
     }
 
     // Desactiva acceso del usuario sin eliminarlo.
@@ -125,32 +158,39 @@ class UserController extends Controller
         User $user,
         UserManagementService $userManagementService,
     ): JsonResponse {
-        $this->ensureAdmin($request);
+        /** @var User $actor */
+        $actor = $request->user();
+
+        if ($actor->cannot('deactivate', $user)) {
+            return $this->forbiddenResponse('You are not allowed to deactivate this user.');
+        }
 
         $deactivatedUser = $userManagementService->deactivate($user);
 
         return response()->json([
             'message' => 'User deactivated successfully.',
             'data' => new UserResource($deactivatedUser->load('roles')),
-        ]);
+            'status' => 200,
+        ], 200);
     }
 
     // Obtiene solo el set de roles del usuario.
     public function roles(Request $request, User $user): JsonResponse
     {
-        $this->ensureAdmin($request);
+        /** @var User $actor */
+        $actor = $request->user();
+
+        if ($actor->cannot('roles', $user)) {
+            return $this->notFoundResponse('User not found.');
+        }
 
         $user->load('roles');
 
         return response()->json([
             'message' => 'User roles retrieved successfully.',
-            'data' => [
-                'user_id' => $user->id,
-                'roles' => $user->roles
-                    ->pluck('name')
-                    ->values(),
-            ],
-        ]);
+            'data' => new UserResource($user),
+            'status' => 200,
+        ], 200);
     }
 
     // Sincroniza roles (reemplazo total del set actual).
@@ -159,7 +199,12 @@ class UserController extends Controller
         User $user,
         UserManagementService $userManagementService,
     ): JsonResponse {
-        $this->ensureAdmin($request);
+        /** @var User $actor */
+        $actor = $request->user();
+
+        if ($actor->cannot('syncRoles', $user)) {
+            return $this->forbiddenResponse('You are not allowed to synchronize roles for this user.');
+        }
 
         $updatedUser = $userManagementService->syncRoles(
             $user,
@@ -168,22 +213,8 @@ class UserController extends Controller
 
         return response()->json([
             'message' => 'User roles synchronized successfully.',
-            'data' => [
-                'user_id' => $updatedUser->id,
-                'roles' => $updatedUser->roles
-                    ->pluck('name')
-                    ->values(),
-            ],
-        ]);
-    }
-
-    // Reutiliza comprobación admin para endpoints de usuarios.
-    private function ensureAdmin(Request $request): User
-    {
-        $user = $request->user();
-
-        abort_unless($user instanceof User && $user->hasRole('admin'), 403, 'Only admins can perform this action.');
-
-        return $user;
+            'data' => new UserResource($updatedUser->load('roles')),
+            'status' => 200,
+        ], 200);
     }
 }

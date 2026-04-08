@@ -1,7 +1,5 @@
 <?php
 
-declare(strict_types=1);
-
 namespace App\Services;
 
 use App\Models\Event;
@@ -14,7 +12,7 @@ class EventFormService
     /**
      * @param  array<int, mixed>  $schema
      */
-    // Guarda schema y lo deja inactivo para exigir validación/activación explícita.
+    // Guarda schema y lo deja inactivo para exigir validacion/activacion explicita.
     public function updateSchema(Event $event, array $schema): Event
     {
         $event->update([
@@ -29,7 +27,7 @@ class EventFormService
      * @param  array<int, mixed>  $schema
      * @return array<int, string>
      */
-    // Valida estructura del schema para evitar formularios incompletos o inválidos.
+    // Valida estructura del schema para evitar formularios incompletos o invalidos.
     public function validateSchema(array $schema): array
     {
         $errors = [];
@@ -102,7 +100,7 @@ class EventFormService
         return $errors;
     }
 
-    // Activa formulario solo si el evento está publicado y el schema es válido.
+    // Activa formulario solo si el evento esta publicado y el schema es valido.
     public function activate(Event $event): Event
     {
         if ($event->status !== 'published') {
@@ -124,7 +122,7 @@ class EventFormService
         return $event->refresh();
     }
 
-    // Desactiva formulario sin perder configuración.
+    // Desactiva formulario sin perder configuracion.
     public function deactivate(Event $event): Event
     {
         $event->update(['form_is_active' => false]);
@@ -147,10 +145,6 @@ class EventFormService
 
         if ($event->registration_deadline !== null && now()->gt($event->registration_deadline)) {
             $errors['registration_deadline'][] = 'The registration deadline for this event has passed.';
-        }
-
-        if ($event->capacity > 0 && $event->submissions()->count() >= $event->capacity) {
-            $errors['capacity'][] = 'Event capacity has been reached.';
         }
 
         if ($errors !== []) {

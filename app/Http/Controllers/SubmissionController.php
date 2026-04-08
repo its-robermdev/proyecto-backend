@@ -1,7 +1,5 @@
 <?php
 
-declare(strict_types=1);
-
 namespace App\Http\Controllers;
 
 use App\Http\Requests\StoreSubmissionRequest;
@@ -10,20 +8,27 @@ use App\Models\Event;
 use App\Models\Submission;
 use App\Models\User;
 use App\Services\SubmitFormService;
+use Database\Seeders\PermissionName;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
-use Illuminate\Support\Facades\Gate;
 
 class SubmissionController extends Controller
 {
-    // Lista submissions de un evento con control de visibilidad por rol.
-    public function index(Request $request, Event $event): AnonymousResourceCollection
+    public function __construct()
     {
-        Gate::authorize('viewAny', Submission::class);
+        $this->authorizeResource(Submission::class, 'submission', ['except' => ['show', 'store']]);
+    }
+
+    // Lista submissions de un evento con control de visibilidad por permisos.
+    public function index(Request $request, Event $event): AnonymousResourceCollection|JsonResponse
+    {
+        /** @var User $user */
         $user = $request->user();
 
-        abort_unless($user instanceof User && $this->canViewEventSubmissions($user, $event), 403, 'You are not allowed to inspect submissions for this event.');
+        if (! $this->canAccessEventSubmissions($user, $event)) {
+            return $this->notFoundResponse('Event not found.');
+        }
 
         $submissions = $event->submissions()
             ->with(['members', 'reviewer'])
@@ -31,10 +36,13 @@ class SubmissionController extends Controller
             ->paginate();
 
         return SubmissionResource::collection($submissions)
-            ->additional(['message' => 'Submissions retrieved successfully.']);
+            ->additional([
+                'message' => 'Submissions retrieved successfully.',
+                'status' => 200,
+            ]);
     }
 
-    // Registra una nueva inscripción con miembros y respuestas dinámicas.
+    // Registra una nueva inscripcion con miembros y respuestas dinamicas.
     public function store(StoreSubmissionRequest $request, Event $event, SubmitFormService $submitFormService): JsonResponse
     {
         $submission = $submitFormService->submit($event, $request->validated());
@@ -42,40 +50,30 @@ class SubmissionController extends Controller
         return response()->json([
             'message' => 'Submission created successfully.',
             'data' => new SubmissionResource($submission),
+            'status' => 201,
         ], 201);
     }
 
     // Devuelve detalle de una submission si el usuario puede revisarla.
     public function show(Request $request, Submission $submission): JsonResponse
     {
-        Gate::authorize('view', $submission);
+        /** @var User $user */
         $user = $request->user();
 
-        $submission->loadMissing('event');
-        abort_unless(
-            $user instanceof User && $this->canViewEventSubmissions($user, $submission->event),
-            403,
-            'You are not allowed to inspect this submission.',
-        );
+        if ($user->cannot('view', $submission)) {
+            return $this->notFoundResponse('Submission not found.');
+        }
 
         return response()->json([
             'message' => 'Submission retrieved successfully.',
             'data' => new SubmissionResource($submission->load(['event', 'members', 'reviewer'])),
-        ]);
+            'status' => 200,
+        ], 200);
     }
 
-    // Reusa regla de acceso: admin o moderador autorizado en el evento.
-    private function canViewEventSubmissions(User $user, Event $event): bool
+    private function canAccessEventSubmissions(User $user, Event $event): bool
     {
-        if ($user->hasRole('admin')) {
-            return true;
-        }
-
-        if (! $user->hasRole('moderator')) {
-            return false;
-        }
-
-        if ($event->status === 'published') {
+        if ($user->hasPermissionTo(PermissionName::VIEW_ANY_EVENT->value)) {
             return true;
         }
 

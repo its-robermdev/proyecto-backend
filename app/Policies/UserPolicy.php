@@ -1,46 +1,91 @@
 <?php
 
-declare(strict_types=1);
-
 namespace App\Policies;
 
 use App\Models\User;
+use Database\Seeders\PermissionName;
 
 class UserPolicy
 {
-    // Gestión de usuarios reservada al rol admin.
     public function viewAny(User $user): bool
     {
-        return $user->hasRole('admin');
+        return $user->hasPermissionTo(PermissionName::MANAGE_MODERATOR_PROFILES->value);
     }
 
-    // Gestión de usuarios reservada al rol admin.
     public function view(User $user, User $model): bool
     {
-        return $user->hasRole('admin');
+        return $user->hasPermissionTo(PermissionName::MANAGE_MODERATOR_PROFILES->value);
     }
 
-    // Gestión de usuarios reservada al rol admin.
     public function create(User $user): bool
     {
-        return $user->hasRole('admin');
+        return $user->hasPermissionTo(PermissionName::MANAGE_MODERATOR_PROFILES->value);
     }
 
-    // Gestión de usuarios reservada al rol admin.
-    public function update(User $user, User $model): bool
+    public function update(User $actor, User $target): bool
     {
-        return $user->hasRole('admin');
+        if ($actor->is($target) && $actor->hasPermissionTo(PermissionName::EDIT_OWN_PROFILE->value)) {
+            return true;
+        }
+
+        if ($target->hasRole('admin')) {
+            return false;
+        }
+
+        if ($actor->hasPermissionTo(PermissionName::MANAGE_MODERATOR_PROFILES->value)) {
+            return true;
+        }
+
+        return false;
     }
 
-    // Gestión de usuarios reservada al rol admin.
-    public function delete(User $user, User $model): bool
+    public function delete(User $actor, User $target): bool
     {
-        return $user->hasRole('admin');
+        if ($target->hasRole('admin')) {
+            return false;
+        }
+
+        return $actor->hasPermissionTo(PermissionName::MANAGE_MODERATOR_PROFILES->value);
     }
 
-    // Gestión de usuarios reservada al rol admin.
-    public function restore(User $user, User $model): bool
+    public function restore(User $actor, User $target): bool
     {
-        return $user->hasRole('admin');
+        if ($target->hasRole('admin')) {
+            return false;
+        }
+
+        return $actor->hasPermissionTo(PermissionName::MANAGE_MODERATOR_PROFILES->value);
+    }
+
+    public function roles(User $actor, User $target): bool
+    {
+        return $this->view($actor, $target);
+    }
+
+    public function syncRoles(User $actor, User $target): bool
+    {
+        if ($target->hasRole('admin')) {
+            return false;
+        }
+
+        return $actor->hasPermissionTo(PermissionName::MANAGE_MODERATOR_PROFILES->value);
+    }
+
+    public function activate(User $actor, User $target): bool
+    {
+        if ($target->hasRole('admin')) {
+            return false;
+        }
+
+        return $actor->hasPermissionTo(PermissionName::MANAGE_MODERATOR_PROFILES->value);
+    }
+
+    public function deactivate(User $actor, User $target): bool
+    {
+        if ($target->hasRole('admin')) {
+            return false;
+        }
+
+        return $actor->hasPermissionTo(PermissionName::MANAGE_MODERATOR_PROFILES->value);
     }
 }

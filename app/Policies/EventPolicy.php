@@ -1,25 +1,25 @@
 <?php
 
-declare(strict_types=1);
-
 namespace App\Policies;
 
 use App\Models\Event;
 use App\Models\User;
+use Database\Seeders\PermissionName;
 
 class EventPolicy
 {
-    // Permite listar público sin autenticación y panel interno para roles válidos.
+    // Public listing stays available; authenticated access depends on permissions.
     public function viewAny(?User $user): bool
     {
         if (! $user instanceof User) {
             return true;
         }
 
-        return $user->hasAnyRole(['admin', 'moderator']);
+        return $user->hasPermissionTo(PermissionName::VIEW_ANY_EVENT->value)
+            || $user->hasPermissionTo(PermissionName::VIEW_OWN_EVENT->value);
     }
 
-    // Permite ver publicados públicamente; no publicados solo a admin/mod asignado.
+    // Published events are public; non-published events require permission-based visibility.
     public function view(?User $user, Event $event): bool
     {
         if ($event->status === 'published') {
@@ -30,71 +30,72 @@ class EventPolicy
             return false;
         }
 
-        if ($user->hasRole('admin')) {
+        if ($user->hasPermissionTo(PermissionName::VIEW_ANY_EVENT->value)) {
             return true;
         }
 
-        if (! $user->hasRole('moderator')) {
+        if (! $user->hasPermissionTo(PermissionName::VIEW_OWN_EVENT->value)) {
             return false;
         }
 
-        return $event->moderators()->where('users.id', $user->id)->exists();
+        return $this->isAssignedModerator($user, $event);
     }
 
-    // Solo admin puede crear eventos.
     public function create(User $user): bool
     {
-        return $user->hasRole('admin');
+        return $user->hasPermissionTo(PermissionName::CREATE_EVENT->value);
     }
 
-    // Solo admin puede editar eventos.
     public function update(User $user, Event $event): bool
     {
-        return $user->hasRole('admin');
+        return $user->hasPermissionTo(PermissionName::UPDATE_EVENT->value);
     }
 
-    // Solo admin puede eliminar eventos.
     public function delete(User $user, Event $event): bool
     {
-        return $user->hasRole('admin');
+        return $user->hasPermissionTo(PermissionName::DELETE_EVENT->value);
     }
 
-    // Solo admin puede restaurar eventos.
     public function restore(User $user, Event $event): bool
     {
-        return $user->hasRole('admin');
+        return $user->hasPermissionTo(PermissionName::DELETE_EVENT->value);
     }
 
-    // Borrado físico deshabilitado por política.
     public function forceDelete(User $user, Event $event): bool
     {
         return false;
     }
 
-    // Solo admin puede ejecutar transición de estado.
     public function updateStatus(User $user, Event $event): bool
     {
-        return $user->hasRole('admin');
+        return $user->hasPermissionTo(PermissionName::UPDATE_EVENT->value);
     }
 
-    // Solo admin configura schema y activación del formulario.
     public function updateForm(User $user, Event $event): bool
     {
-        return $user->hasRole('admin');
+        return $user->hasPermissionTo(PermissionName::UPDATE_EVENT->value);
     }
 
-    // Admin y moderador autorizado pueden consultar responsables del evento.
+    // Moderator listing mirrors event visibility.
     public function inspectModerators(User $user, Event $event): bool
     {
-        if ($user->hasRole('admin')) {
+        if ($event->status === 'published') {
             return true;
         }
 
-        if (! $user->hasRole('moderator')) {
-            return false;
-        }
+        return $user->hasPermissionTo(PermissionName::VIEW_ANY_EVENT->value)
+            || ($user->hasPermissionTo(PermissionName::VIEW_OWN_EVENT->value) && $this->isAssignedModerator($user, $event));
+    }
 
-        return $event->status === 'published'
-            || $event->moderators()->where('users.id', $user->id)->exists();
+    public function assignModerators(User $user, Event $event): bool
+    {
+        return $user->hasPermissionTo(PermissionName::ASSIGN_EVENT_MODERATORS->value);
+    }
+
+    private function isAssignedModerator(User $user, Event $event): bool
+    {
+        return $event->moderators()
+            ->where('users.id', $user->id)
+            ->exists();
     }
 }

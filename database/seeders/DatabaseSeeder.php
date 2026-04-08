@@ -16,6 +16,7 @@ class DatabaseSeeder extends Seeder
     {
         // Orden de seeders pensado para respetar dependencias entre tablas.
         $this->call([
+            PermissionSeeder::class,
             RoleSeeder::class,
             UserSeeder::class,
             EventSeeder::class,

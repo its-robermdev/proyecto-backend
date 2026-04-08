@@ -1,7 +1,5 @@
 <?php
 
-declare(strict_types=1);
-
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
@@ -23,7 +21,7 @@ return new class extends Migration
             $table->enum('participation_type', ['individual', 'team']);
             $table->string('team_name')->nullable();
 
-            $table->enum('status', ['submitted', 'approved', 'rejected'])->default('submitted');
+            $table->enum('status', ['pending', 'approved', 'rejected'])->default('pending');
             $table->text('review_comment')->nullable();
             $table->foreignId('reviewed_by')->nullable()->constrained('users');
             $table->dateTime('reviewed_at')->nullable();

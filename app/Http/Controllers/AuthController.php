@@ -1,9 +1,8 @@
 <?php
 
-declare(strict_types=1);
-
 namespace App\Http\Controllers;
 
+use App\Http\Resources\UserResource;
 use App\Models\User;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -26,6 +25,7 @@ class AuthController extends Controller
             return response()->json([
                 'message' => 'Email or password incorrect.',
                 'data' => null,
+                'status' => 422,
             ], 422);
         }
 
@@ -33,6 +33,7 @@ class AuthController extends Controller
             return response()->json([
                 'message' => 'This user account is inactive.',
                 'data' => null,
+                'status' => 403,
             ], 403);
         }
 
@@ -42,9 +43,10 @@ class AuthController extends Controller
             'message' => 'Login successful.',
             'data' => [
                 'token' => $token->plainTextToken,
-                'user' => $user,
+                'user' => new UserResource($user),
             ],
-        ]);
+            'status' => 200,
+        ], 200);
     }
 
     // Revoca todos los tokens activos del usuario autenticado.
@@ -56,8 +58,9 @@ class AuthController extends Controller
 
         return response()->json([
             'message' => 'Logout successful.',
-            'data' => null,
-        ]);
+            'data' => new UserResource($user),
+            'status' => 200,
+        ], 200);
     }
 
     // Retorna los datos del usuario autenticado.
@@ -65,7 +68,8 @@ class AuthController extends Controller
     {
         return response()->json([
             'message' => 'Profile retrieved successfully.',
-            'data' => $request->user(),
-        ]);
+            'data' => new UserResource($request->user()),
+            'status' => 200,
+        ], 200);
     }
 }
