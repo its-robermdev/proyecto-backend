@@ -4,13 +4,13 @@ API REST en Laravel para la gestión de eventos tecnológicos del Competitive Co
 
 ## Descripción general
 
-C3 Events API centraliza la gestión operativa y pública de eventos tecnológicos organizados por el club. El proyecto resuelve la necesidad de administrar eventos desde backoffice, configurar formularios dinámicos de inscripción y habilitar un flujo público controlado para recibir postulaciones o registros.
+C3 Events API centraliza la gestión operativa y pública de eventos tecnológicos organizados por el C3. El proyecto resuelve la necesidad de administrar eventos desde backoffice, configurar formularios dinámicos de inscripción y habilitar un flujo público controlado para recibir postulaciones o registros.
 
 La solución cubre tres flujos principales:
 
-- gestión interna de eventos, incluyendo creación, edición, publicación, restauración y cambios de estado;
-- configuración de formularios dinámicos de inscripción asociados a cada evento;
-- registro público de submissions, tanto individuales como por equipo, con validaciones dinámicas y control de cupos.
+- Gestión interna de eventos, incluyendo creación, edición, publicación, restauración y cambios de estado;
+- Configuración de formularios dinámicos de inscripción asociados a cada evento;
+- Registro público de submissions, tanto individuales como por equipo, con validaciones dinámicas y control de cupos.
 
 Los actores que interactúan con el sistema son:
 
@@ -20,48 +20,48 @@ Los actores que interactúan con el sistema son:
 
 ## Objetivo del proyecto
 
-Diseñar e implementar una API REST segura, versionada y mantenible para soportar la operación del ciclo de vida de eventos del C3, desde su administración interna hasta el registro público de participantes, aplicando autenticación basada en tokens, control de acceso por roles y reglas de negocio específicas del dominio.
+Diseñar una API REST en Laravel para la gestión de eventos tecnológicos del C3, permitiendo administrar eventos, configurar procesos de inscripción y registrar participantes de manera segura, estructurada y coherente con las reglas del negocio.
 
 ## Funcionalidades principales
 
 ### Autenticación y perfil
 
-- inicio y cierre de sesión mediante tokens de Laravel Sanctum;
-- consulta del perfil autenticado;
-- bloqueo de login para cuentas inactivas o eliminadas lógicamente.
+- Inicio y cierre de sesión mediante tokens de Laravel Sanctum;
+- Consulta del perfil autenticado;
+- Bloqueo de login para cuentas inactivas o eliminadas lógicamente.
 
 ### Gestión de eventos
 
-- creación de eventos en estado inicial `draft`;
-- edición de metadata del evento;
-- publicación, cierre, cancelación, archivado y restauración según reglas del ciclo de vida;
-- consulta pública de eventos publicados y consulta privada según permisos.
+- Creación de eventos en estado inicial `draft`;
+- Edición de metadata del evento;
+- Publicación, cierre, cancelación, archivado y restauración según reglas del ciclo de vida;
+- Consulta pública de eventos publicados y consulta privada según permisos.
 
 ### Formularios de inscripción
 
-- almacenamiento de formularios dinámicos en `form_schema`;
-- validación estructural del formulario antes de activarlo;
-- activación y desactivación del formulario por evento;
-- acceso público solo cuando el evento está publicado y el formulario está activo.
+- Almacenamiento de formularios dinámicos en `form_schema`;
+- Validación estructural del formulario antes de activarlo;
+- Activación y desactivación del formulario por evento;
+- Acceso público solo cuando el evento está publicado y el formulario está activo.
 
 ### Moderadores por evento
 
-- asignación y remoción de moderadores por evento;
-- visibilidad restringida para moderadores solo sobre eventos donde están asignados.
+- Asignación y remoción de moderadores por evento;
+- Visibilidad restringida para moderadores solo sobre eventos donde están asignados.
 
 ### Submissions
 
-- creación pública de submissions individuales o por equipo;
-- almacenamiento de respuestas dinámicas del formulario;
-- gestión de miembros en submissions grupales;
-- revisión administrativa o por moderadores autorizados;
-- restauración y eliminación lógica de submissions.
+- Creación pública de submissions individuales o por equipo;
+- Almacenamiento de respuestas dinámicas del formulario;
+- Gestión de miembros en submissions grupales;
+- Revisión administrativa o por moderadores autorizados;
+- Restauración y eliminación lógica de submissions.
 
 ### Usuarios, roles y permisos
 
-- alta, edición, activación, desactivación, eliminación lógica y restauración de usuarios;
-- asignación y sincronización de roles;
-- separación entre `admin`, `moderator` y `root admin` mediante `is_root` y políticas de acceso.
+- Alta, edición, activación, desactivación, eliminación lógica y restauración de usuarios;
+- Asignación y sincronización de roles;
+- Separación entre `admin`, `moderator` y `root admin` mediante `is_root` y políticas de acceso.
 
 ## Tecnologías utilizadas
 
@@ -74,10 +74,9 @@ Diseñar e implementar una API REST segura, versionada y mantenible para soporta
 | Documentación | Dedoc Scramble | Generación de documentación OpenAPI y UI interactiva |
 | Testing | PHPUnit 12 | Tests feature y unit |
 | Build tooling | Vite | Pipeline frontend incluido en el scaffold del proyecto |
-| Estilos del scaffold | Tailwind CSS 4 | Dependencia frontend incluida en el proyecto |
 | Gestión de dependencias | Composer / npm | Instalación de dependencias PHP y frontend |
 
-Nota: este README prioriza PostgreSQL para el levantamiento local porque está soportado por `config/database.php` y fue definido como base preferida para la guía. El proyecto también incluye configuración para otros drivers como SQLite, MySQL, MariaDB y SQL Server.
+Nota: este README prioriza PostgreSQL para el levantamiento local. A pesar de esto, el proyecto también incluye configuración para otros drivers como SQLite, MySQL, MariaDB y SQL Server.
 
 ## Arquitectura y decisiones técnicas relevantes
 
@@ -93,11 +92,11 @@ La aplicación sigue una organización típica de Laravel, separando responsabil
 
 Los `Services` encapsulan reglas de negocio relevantes. En el código actual destacan:
 
-- ciclo de vida de eventos;
-- activación y validación de formularios;
-- envío de submissions;
-- revisión de submissions;
-- gestión administrativa de usuarios.
+- Ciclo de vida de eventos;
+- Activación y validación de formularios;
+- Envío de submissions;
+- Revisión de submissions;
+- Gestión administrativa de usuarios.
 
 ### Persistencia
 
@@ -126,12 +125,12 @@ Esta combinación es coherente con una API REST académica porque separa autenti
 
 Reglas de dominio relevantes detectadas en el código:
 
-- un evento puede tener múltiples moderadores, pero un moderador solo debería operar sobre eventos donde está asignado;
-- el formulario del evento se almacena como estructura JSON en `form_schema`;
-- una submission puede ser `individual` o `team`;
-- en submissions de equipo debe existir exactamente un capitán;
-- el control de cupos considera submissions en estados `pending` y `approved` como ocupación efectiva;
-- un formulario solo puede usarse públicamente cuando el evento está `published` y `form_is_active` es `true`.
+- Un evento puede tener múltiples moderadores, pero un moderador solo debería operar sobre eventos donde está asignado;
+- El formulario del evento se almacena como estructura JSON en `form_schema`;
+- Una submission puede ser `individual` o `team`;
+- En submissions de equipo debe existir exactamente un capitán;
+- El control de cupos considera submissions en estados `pending` y `approved` como ocupación efectiva;
+- Un formulario solo puede usarse públicamente cuando el evento está `published` y `form_is_active` es `true`.
 
 ## Seguridad
 
@@ -143,8 +142,8 @@ La autenticación de la API usa Laravel Sanctum con enfoque token-based. El logi
 
 La autorización combina dos mecanismos:
 
-- roles y permisos con Spatie Laravel Permission;
-- policies de Laravel para decisiones por recurso.
+- Roles y permisos con Spatie Laravel Permission;
+- Policies de Laravel para decisiones por recurso.
 
 ### Accesos públicos y protegidos
 
@@ -159,13 +158,13 @@ El resto del backoffice opera bajo `auth:sanctum`.
 
 ### Reglas de seguridad relevantes del proyecto
 
-- el sistema usa `is_root` para distinguir a un `root admin` con mayor alcance sobre cuentas administrativas;
-- el primer usuario creado adquiere automáticamente `is_root`; con el orden actual de `DatabaseSeeder`, `admin@c3.com` queda como root en ambientes sembrados desde cero;
-- un admin no root no puede ver ni gestionar cuentas admin o root ajenas;
-- el listado de usuarios para un admin no root solo expone moderadores;
-- el root no puede eliminarse, restaurarse, activarse ni desactivarse a sí mismo desde los endpoints administrativos;
-- el login devuelve errores explícitos cuando una cuenta está inactiva o eliminada lógicamente;
-- la configuración en `bootstrap/app.php` transforma excepciones de autenticación y autorización en respuestas JSON adecuadas para API.
+- El sistema usa `is_root` para distinguir a un `root admin` con mayor alcance sobre cuentas administrativas;
+- El primer usuario creado adquiere automáticamente `is_root`; con el orden actual de `DatabaseSeeder`, `admin@c3.com` queda como root en ambientes sembrados desde cero;
+- Un admin no root no puede ver ni gestionar cuentas admin o root ajenas;
+- El listado de usuarios para un admin no root solo expone moderadores;
+- El root no puede eliminarse, restaurarse, activarse ni desactivarse a sí mismo desde los endpoints administrativos;
+- El login devuelve errores explícitos cuando una cuenta está inactiva o eliminada lógicamente;
+- La configuración en `bootstrap/app.php` transforma excepciones de autenticación y autorización en respuestas JSON adecuadas para API.
 
 ## Requisitos previos
 
@@ -396,7 +395,7 @@ curl -X POST http://127.0.0.1:8000/api/v1/events/1/submissions \
     "submitted_by_name": "Participante C3",
     "participation_type": "individual",
     "form_answers": {
-      "TODO": "Completar según el form_schema real del evento"
+      [...]
     }
   }'
 ```
@@ -515,10 +514,7 @@ tests/
 
 - Documentación interactiva OpenAPI: `/docs/api`
 - Documento OpenAPI exportado: `/docs/api.json`
-- DER: `TODO: completar según materiales del equipo`
-- Flujogramas: `TODO: completar según materiales del equipo`
-- Documento de diseño de solución: `TODO: completar según materiales del equipo`
-- Presentación académica: `TODO: completar según materiales del equipo`
+- DER: `https://drive.google.com/file/d/1oMACIr9pLPas6CuTcgAdDqV5VQtB9sf9/view?usp=sharing`
 
 ## Estado del proyecto
 
@@ -526,8 +522,10 @@ Proyecto académico funcional, orientado a evaluación y defensa técnica, con u
 
 ## Autoría o equipo
 
-`TODO: completar nombres del equipo`
+- Roberto Morán | @its-robermdev
+- Chris Marroquín | @ChrisM2309
+- Óscar Pleites
 
 ## Licencia
 
-Uso académico. `TODO: definir licencia si el proyecto se publicará externamente.`
+Uso académico.
