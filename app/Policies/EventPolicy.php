@@ -19,15 +19,11 @@ class EventPolicy
             || $user->hasPermissionTo(PermissionCatalog::ALL['view_own_event']);
     }
 
-    // Published events are public; non-published events require permission-based visibility.
+    // Public users can view published events; authenticated moderators only their assigned events.
     public function view(?User $user, Event $event): bool
     {
-        if ($event->status === 'published') {
-            return true;
-        }
-
         if (! $user instanceof User) {
-            return false;
+            return $event->status === 'published';
         }
 
         if ($user->hasPermissionTo(PermissionCatalog::ALL['view_any_event'])) {
@@ -79,12 +75,7 @@ class EventPolicy
     // Moderator listing mirrors event visibility.
     public function inspectModerators(User $user, Event $event): bool
     {
-        if ($event->status === 'published') {
-            return true;
-        }
-
-        return $user->hasPermissionTo(PermissionCatalog::ALL['view_any_event'])
-            || ($user->hasPermissionTo(PermissionCatalog::ALL['view_own_event']) && $this->isAssignedModerator($user, $event));
+        return $user->hasPermissionTo(PermissionCatalog::ALL['view_any_event']);
     }
 
     public function assignModerators(User $user, Event $event): bool

@@ -17,7 +17,7 @@ class EventController extends Controller
 {
     public function __construct()
     {
-        $this->authorizeResource(Event::class, 'event', ['except' => ['show', 'destroy']]);
+        $this->authorizeResource(Event::class, 'event', ['except' => ['show', 'update', 'destroy']]);
     }
 
     // Lista eventos segun visibilidad publica o permisos del usuario autenticado.
@@ -31,10 +31,7 @@ class EventController extends Controller
             // Global visibility keeps the full list.
             $query->latest();
         } elseif ($user instanceof User && $user->hasPermissionTo(PermissionCatalog::ALL['view_own_event'])) {
-            $query->where(function ($query) use ($user): void {
-                $query->where('status', 'published')
-                    ->orWhereHas('moderators', fn ($moderatorQuery) => $moderatorQuery->where('users.id', $user->id));
-            });
+            $query->whereHas('moderators', fn ($moderatorQuery) => $moderatorQuery->where('users.id', $user->id));
             $query->orderBy('start_date');
         } else {
             $query->where('status', 'published')
@@ -70,30 +67,50 @@ class EventController extends Controller
     }
 
     // Devuelve detalle del evento si el usuario tiene visibilidad.
-    public function show(Request $request, Event $event): JsonResponse
+    public function show(Request $request, int $event): JsonResponse
     {
-        if (! Gate::allows('view', $event)) {
+        $targetEvent = Event::with('creator:id,name')->find($event);
+
+        if (! $targetEvent instanceof Event) {
             return $this->notFoundResponse('Event not found.');
         }
 
-        $event->loadMissing('creator:id,name');
+        if (! Gate::allows('view', $targetEvent)) {
+            if (! $request->user() instanceof User) {
+                return $this->notFoundResponse('Event not found.');
+            }
+
+            return $this->forbiddenResponse('This action is unauthorized.');
+        }
 
         return response()->json([
             'message' => 'Event retrieved successfully.',
-            'data' => new EventResource($event),
+            'data' => new EventResource($targetEvent),
             'status' => 200,
         ], 200);
     }
 
     // Actualiza metadatos del evento.
-    public function update(UpdateEventRequest $request, Event $event): JsonResponse
+    public function update(UpdateEventRequest $request, int $event): JsonResponse
     {
-        $event->update($request->validated());
-        $event->refresh()->load('creator:id,name');
+        /** @var User $actor */
+        $actor = $request->user();
+        $targetEvent = Event::find($event);
+
+        if (! $targetEvent instanceof Event) {
+            return $this->notFoundResponse('Event not found.');
+        }
+
+        if ($actor->cannot('update', $targetEvent)) {
+            return $this->forbiddenResponse('This action is unauthorized.');
+        }
+
+        $targetEvent->update($request->validated());
+        $targetEvent->refresh()->load('creator:id,name');
 
         return response()->json([
             'message' => 'Event updated successfully.',
-            'data' => new EventResource($event),
+            'data' => new EventResource($targetEvent),
             'status' => 200,
         ], 200);
     }
@@ -112,7 +129,7 @@ class EventController extends Controller
         }
 
         if ($actor->cannot('delete', $targetEvent)) {
-            return $this->forbiddenResponse('You are not allowed to delete this event.');
+            return $this->forbiddenResponse('This action is unauthorized.');
         }
 
         if ($targetEvent->trashed()) {
@@ -140,7 +157,7 @@ class EventController extends Controller
         }
 
         if ($actor->cannot('restore', $targetEvent)) {
-            return $this->forbiddenResponse('You are not allowed to restore this event.');
+            return $this->forbiddenResponse('This action is unauthorized.');
         }
 
         if (! $targetEvent->trashed()) {

@@ -1,5 +1,6 @@
 <?php
 
+use Illuminate\Auth\AuthenticationException;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
@@ -18,6 +19,18 @@ return Application::configure(basePath: dirname(__DIR__))
         //
     })
     ->withExceptions(function (Exceptions $exceptions): void {
+        $exceptions->render(function (AuthenticationException $exception, Request $request) {
+            if (! $request->is('api/*')) {
+                return null;
+            }
+
+            return response()->json([
+                'message' => 'Unauthenticated.',
+                'data' => null,
+                'status' => 401,
+            ], 401);
+        });
+
         $exceptions->render(function (AuthorizationException $exception, Request $request) {
             if (! $request->is('api/*')) {
                 return null;
@@ -26,6 +39,7 @@ return Application::configure(basePath: dirname(__DIR__))
             return response()->json([
                 'message' => $exception->getMessage() !== '' ? $exception->getMessage() : 'This action is unauthorized.',
                 'data' => null,
+                'status' => 403,
             ], 403);
         });
 
@@ -37,6 +51,7 @@ return Application::configure(basePath: dirname(__DIR__))
             return response()->json([
                 'message' => $exception->getMessage() !== '' ? $exception->getMessage() : 'This action is unauthorized.',
                 'data' => null,
+                'status' => 403,
             ], 403);
         });
     })->create();

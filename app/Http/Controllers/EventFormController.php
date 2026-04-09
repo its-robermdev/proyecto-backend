@@ -10,23 +10,34 @@ use App\Services\EventFormService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
+use App\Models\User;
 
 class EventFormController extends Controller
 {
     // Entrega el schema del formulario segun reglas publicas o de visibilidad del evento.
-    public function show(Request $request, Event $event): JsonResponse
+    public function show(Request $request, int $event): JsonResponse
     {
-        $publicCondition = $event->status === 'published' && $event->form_is_active === true;
+        $targetEvent = Event::find($event);
+
+        if (! $targetEvent instanceof Event) {
+            return $this->notFoundResponse('Form is not available for this event.');
+        }
+
+        $publicCondition = $targetEvent->status === 'published' && $targetEvent->form_is_active === true;
 
         if ($publicCondition) {
-            return $this->schemaResponse($event, 'Event form schema retrieved successfully.');
+            return $this->schemaResponse($targetEvent, 'Event form schema retrieved successfully.');
         }
 
-        if ($request->user() instanceof \App\Models\User && Gate::allows('view', $event)) {
-            return $this->schemaResponse($event, 'Event form schema retrieved successfully.');
+        if (! $request->user() instanceof User) {
+            return $this->notFoundResponse('Form is not available for this event.');
         }
 
-        return $this->notFoundResponse('Form is not available for this event.');
+        if (! Gate::allows('view', $targetEvent)) {
+            return $this->forbiddenResponse('This action is unauthorized.');
+        }
+
+        return $this->schemaResponse($targetEvent, 'Event form schema retrieved successfully.');
     }
 
     // Actualiza el schema y fuerza reactivacion manual del formulario.

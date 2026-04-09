@@ -15,22 +15,27 @@ use Illuminate\Support\Facades\Gate;
 class EventModeratorController extends Controller
 {
     // Lista moderadores/responsables asociados al evento.
-    public function index(Request $request, Event $event): JsonResponse
+    public function index(Request $request, int $event): JsonResponse
     {
         /** @var User $user */
         $user = $request->user();
+        $targetEvent = Event::find($event);
 
-        if ($user->cannot('inspectModerators', $event)) {
+        if (! $targetEvent instanceof Event) {
             return $this->notFoundResponse('Event not found.');
         }
 
-        $event->load('moderators:id,name,email');
+        if ($user->cannot('inspectModerators', $targetEvent)) {
+            return $this->forbiddenResponse('This action is unauthorized.');
+        }
+
+        $targetEvent->load('moderators:id,name,email');
 
         return response()->json([
             'message' => 'Event moderators retrieved successfully.',
             'data' => [
-                'event' => new EventResource($event),
-                'moderators' => UserResource::collection($event->moderators),
+                'event' => new EventResource($targetEvent),
+                'moderators' => UserResource::collection($targetEvent->moderators),
             ],
             'status' => 200,
         ], 200);
@@ -43,7 +48,7 @@ class EventModeratorController extends Controller
         EventModeratorService $eventModeratorService,
     ): JsonResponse {
         if (! Gate::allows('assignModerators', $event)) {
-            return $this->forbiddenResponse('You are not allowed to assign moderators to this event.');
+            return $this->forbiddenResponse('This action is unauthorized.');
         }
 
         $assignedModerator = $eventModeratorService->assign(
@@ -69,7 +74,7 @@ class EventModeratorController extends Controller
         EventModeratorService $eventModeratorService,
     ): JsonResponse {
         if (! Gate::allows('assignModerators', $event)) {
-            return $this->forbiddenResponse('You are not allowed to remove moderators from this event.');
+            return $this->forbiddenResponse('This action is unauthorized.');
         }
 
         $user->load('roles');

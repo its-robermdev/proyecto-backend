@@ -14,14 +14,20 @@ class EventStatusController extends Controller
     // Cambia el estado del evento aplicando reglas de transicion.
     public function __invoke(
         UpdateEventStatusRequest $request,
-        Event $event,
+        int $event,
         EventLifecycleService $eventLifecycleService,
     ): JsonResponse {
-        if (! Gate::allows('updateStatus', $event)) {
-            return $this->forbiddenResponse('You are not allowed to update this event status.');
+        $targetEvent = Event::find($event);
+
+        if (! $targetEvent instanceof Event) {
+            return $this->notFoundResponse('Event not found.');
         }
 
-        $updatedEvent = $eventLifecycleService->transitionStatus($event, (string) $request->validated('status'));
+        if (! Gate::allows('updateStatus', $targetEvent)) {
+            return $this->forbiddenResponse('This action is unauthorized.');
+        }
+
+        $updatedEvent = $eventLifecycleService->transitionStatus($targetEvent, (string) $request->validated('status'));
 
         return response()->json([
             'message' => 'Event status updated successfully.',
