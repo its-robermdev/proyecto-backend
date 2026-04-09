@@ -184,7 +184,7 @@ Nota: `.env.example` viene orientado a SQLite. Para esta guía se asume que ajus
 ### 1. Clonar el repositorio
 
 ```bash
-git clone <URL_DEL_REPOSITORIO>
+git clone https://github.com/its-robermdev/proyecto-backend.git
 cd proyecto-backend
 ```
 
