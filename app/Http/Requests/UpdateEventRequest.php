@@ -22,7 +22,7 @@ class UpdateEventRequest extends FormRequest
     public function rules(): array
     {
         // Reglas parciales para update con ignore de slug actual.
-        $event = $this->route('event');
+        $event = $this->resolveEvent();
         $eventId = $event instanceof Event ? $event->id : null;
 
         return [
@@ -48,7 +48,7 @@ class UpdateEventRequest extends FormRequest
                 return;
             }
 
-            $event = $this->route('event');
+            $event = $this->resolveEvent();
             $referenceStart = $this->input('start_date');
 
             if ($referenceStart === null && $event instanceof Event && $event->start_date !== null) {
@@ -69,5 +69,20 @@ class UpdateEventRequest extends FormRequest
                 $validator->errors()->add('registration_deadline', 'Registration deadline must be before or equal to start date.');
             }
         });
+    }
+
+    private function resolveEvent(): ?Event
+    {
+        $event = $this->route('event');
+
+        if ($event instanceof Event) {
+            return $event;
+        }
+
+        if (is_numeric($event)) {
+            return Event::find((int) $event);
+        }
+
+        return null;
     }
 }
