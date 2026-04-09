@@ -408,10 +408,33 @@ Si la submission es de equipo, deben enviarse además `team_name` y `members`, r
 
 La documentación OpenAPI del proyecto se genera con Scramble y, según la configuración actual, se sirve en:
 
-- `/docs/api`
-- `/docs/api.json`
+- UI interactiva: `/docs/api`
+- Especificación OpenAPI en JSON: `/docs/api.json`
 
-Nota: el acceso a esta documentación depende del middleware de Scramble configurado para el entorno actual.
+Si estás trabajando en local con `php artisan serve`, normalmente podrás abrir:
+
+- `http://127.0.0.1:9000/docs/api`
+- `http://127.0.0.1:9000/docs/api.json`
+
+La UI permite:
+
+- Navegar endpoints, parámetros, cuerpos de request y respuestas esperadas;
+- Usar `Try it` para probar peticiones directamente desde el navegador;
+- Inspeccionar los esquemas generados a partir de rutas, requests, resources y metadata del proyecto;
+- Reutilizar `/docs/api.json` en herramientas como Postman o Insomnia.
+
+Para probar endpoints protegidos desde la documentación:
+
+1. Ejecuta primero `POST /api/v1/auth/login`.
+2. Copia el token devuelto en `data.token`.
+3. Usa el mecanismo de autorización de la UI e ingresa el bearer token correspondiente.
+4. Ejecuta después los endpoints que requieren `auth:sanctum`.
+
+Si la documentación no carga o restringe el acceso:
+
+- verifica que la API esté levantada y accesible en la URL configurada;
+- revisa `APP_URL` si estás usando un host o puerto distinto;
+- ten en cuenta que Scramble usa el middleware `RestrictedDocsAccess`, por lo que la visibilidad puede variar según el entorno o la configuración activa.
 
 ## Endpoints o módulos principales
 
