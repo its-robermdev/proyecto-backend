@@ -22,6 +22,10 @@ class UserPolicy
             return true;
         }
 
+        if ($model->hasRole('admin')) {
+            return $user->is_root === true;
+        }
+
         return $user->hasPermissionTo(PermissionCatalog::ALL['manage_moderator_profiles']);
     }
 

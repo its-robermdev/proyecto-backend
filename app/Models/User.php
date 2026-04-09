@@ -22,6 +22,23 @@ class User extends Authenticatable
     /** @use HasFactory<UserFactory> */
     use HasApiTokens, HasFactory, HasRoles, Notifiable, SoftDeletes;
 
+    protected static function booted(): void
+    {
+        static::creating(function (User $user): void {
+            if ($user->is_root === true) {
+                return;
+            }
+
+            $hasRoot = static::withTrashed()
+                ->where('is_root', true)
+                ->exists();
+
+            if (! $hasRoot) {
+                $user->is_root = true;
+            }
+        });
+    }
+
     /**
      * Get the attributes that should be cast.
      *
