@@ -22,7 +22,7 @@ class UpdateUserRequest extends FormRequest
     {
         // Reglas parciales con validación de email único excluyendo el usuario actual.
         $user = $this->route('user');
-        $userId = $user instanceof User ? $user->id : null;
+        $userId = $user instanceof User ? $user->id : (is_numeric($user) ? (int) $user : null);
 
         return [
             'name' => ['sometimes', 'string', 'max:255'],

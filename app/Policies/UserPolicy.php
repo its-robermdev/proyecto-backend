@@ -14,6 +14,14 @@ class UserPolicy
 
     public function view(User $user, User $model): bool
     {
+        if ($model->is_root === true) {
+            return $user->is_root === true;
+        }
+
+        if ($user->is($model) && $user->hasPermissionTo(PermissionCatalog::ALL['edit_own_profile'])) {
+            return true;
+        }
+
         return $user->hasPermissionTo(PermissionCatalog::ALL['manage_moderator_profiles']);
     }
 
@@ -28,12 +36,8 @@ class UserPolicy
             return true;
         }
 
-        if ($target->hasRole('admin')) {
-            return false;
-        }
-
         if ($actor->hasPermissionTo(PermissionCatalog::ALL['manage_moderator_profiles'])) {
-            return true;
+            return ! $target->hasRole('admin') || $actor->is_root === true;
         }
 
         return false;
@@ -41,20 +45,22 @@ class UserPolicy
 
     public function delete(User $actor, User $target): bool
     {
-        if ($target->hasRole('admin')) {
+        if ($this->isRootManagingSelf($actor, $target)) {
             return false;
         }
 
-        return $actor->hasPermissionTo(PermissionCatalog::ALL['manage_moderator_profiles']);
+        return $actor->hasPermissionTo(PermissionCatalog::ALL['manage_moderator_profiles'])
+            && (! $target->hasRole('admin') || $actor->is_root === true);
     }
 
     public function restore(User $actor, User $target): bool
     {
-        if ($target->hasRole('admin')) {
+        if ($this->isRootManagingSelf($actor, $target)) {
             return false;
         }
 
-        return $actor->hasPermissionTo(PermissionCatalog::ALL['manage_moderator_profiles']);
+        return $actor->hasPermissionTo(PermissionCatalog::ALL['manage_moderator_profiles'])
+            && (! $target->hasRole('admin') || $actor->is_root === true);
     }
 
     public function roles(User $actor, User $target): bool
@@ -64,28 +70,32 @@ class UserPolicy
 
     public function syncRoles(User $actor, User $target): bool
     {
-        if ($target->hasRole('admin')) {
-            return false;
-        }
-
-        return $actor->hasPermissionTo(PermissionCatalog::ALL['manage_moderator_profiles']);
+        return $actor->hasPermissionTo(PermissionCatalog::ALL['manage_moderator_profiles'])
+            && (! $target->hasRole('admin') || $actor->is_root === true);
     }
 
     public function activate(User $actor, User $target): bool
     {
-        if ($target->hasRole('admin')) {
+        if ($this->isRootManagingSelf($actor, $target)) {
             return false;
         }
 
-        return $actor->hasPermissionTo(PermissionCatalog::ALL['manage_moderator_profiles']);
+        return $actor->hasPermissionTo(PermissionCatalog::ALL['manage_moderator_profiles'])
+            && (! $target->hasRole('admin') || $actor->is_root === true);
     }
 
     public function deactivate(User $actor, User $target): bool
     {
-        if ($target->hasRole('admin')) {
+        if ($this->isRootManagingSelf($actor, $target)) {
             return false;
         }
 
-        return $actor->hasPermissionTo(PermissionCatalog::ALL['manage_moderator_profiles']);
+        return $actor->hasPermissionTo(PermissionCatalog::ALL['manage_moderator_profiles'])
+            && (! $target->hasRole('admin') || $actor->is_root === true);
+    }
+
+    private function isRootManagingSelf(User $actor, User $target): bool
+    {
+        return $actor->is_root === true && $actor->is($target);
     }
 }

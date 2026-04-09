@@ -15,8 +15,17 @@ class UserSeeder extends Seeder
             'name' => 'Admin C3',
             'email' => 'admin@c3.com',
             'password' => Hash::make('admin123'),
+            'is_root' => true,
         ]);
         $admin->assignRole('admin');
+
+        $miniAdmin = User::factory()->create([
+            'name' => 'Admin Mini C3',
+            'email' => 'adminmini@c3.com',
+            'password' => Hash::make('adminmini123'),
+            'is_root' => null,
+        ]);
+        $miniAdmin->assignRole('admin');
 
         $mod = User::factory()->create([
             'name' => 'Mod C3',

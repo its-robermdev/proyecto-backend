@@ -19,7 +19,15 @@ class AuthController extends Controller
             'password' => ['required', 'string'],
         ]);
 
-        $user = User::query()->where('email', $credentials['email'])->first();
+        $user = User::withTrashed()->where('email', $credentials['email'])->first();
+
+        if ($user instanceof User && $user->trashed()) {
+            return response()->json([
+                'message' => 'This user account has been deleted.',
+                'data' => null,
+                'status' => 403,
+            ], 403);
+        }
 
         if (! $user instanceof User || ! Hash::check($credentials['password'], $user->password)) {
             return response()->json([

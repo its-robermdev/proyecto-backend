@@ -17,7 +17,7 @@ class UserController extends Controller
 {
     public function __construct()
     {
-        $this->authorizeResource(User::class, 'user', ['except' => ['show']]);
+        $this->authorizeResource(User::class, 'user', ['except' => ['show', 'update', 'destroy']]);
     }
 
     // Lista usuarios para administracion interna.
@@ -50,18 +50,23 @@ class UserController extends Controller
     }
 
     // Muestra detalle de usuario con roles.
-    public function show(Request $request, User $user): JsonResponse
+    public function show(Request $request, int $user): JsonResponse
     {
         /** @var User $actor */
         $actor = $request->user();
+        $targetUser = User::find($user);
 
-        if ($actor->cannot('view', $user)) {
+        if (! $targetUser instanceof User) {
+            return $this->notFoundResponse('User not found.');
+        }
+
+        if ($actor->cannot('view', $targetUser)) {
             return $this->notFoundResponse('User not found.');
         }
 
         return response()->json([
             'message' => 'User retrieved successfully.',
-            'data' => new UserResource($user->load('roles')),
+            'data' => new UserResource($targetUser->load('roles')),
             'status' => 200,
         ], 200);
     }
@@ -69,16 +74,26 @@ class UserController extends Controller
     // Actualiza datos basicos del usuario.
     public function update(
         UpdateUserRequest $request,
-        User $user,
+        int $user,
         UserManagementService $userManagementService,
     ): JsonResponse {
         /** @var User $actor */
         $actor = $request->user();
+        $targetUser = User::find($user);
+
+        if (! $targetUser instanceof User) {
+            return $this->notFoundResponse('User not found.');
+        }
+
+        if ($actor->cannot('update', $targetUser)) {
+            return $this->forbiddenResponse('This action is unauthorized.');
+        }
+
         $validated = $request->validated();
 
-        $updatedUser = $actor->is($user)
-            ? $userManagementService->updateProfile($user, Arr::only($validated, ['name', 'email', 'password']))
-            : $userManagementService->updateManagedUser($user, $validated);
+        $updatedUser = $actor->is($targetUser)
+            ? $userManagementService->updateProfile($targetUser, Arr::only($validated, ['name', 'email', 'password']))
+            : $userManagementService->updateManagedUser($actor, $targetUser, $validated);
 
         return response()->json([
             'message' => 'User updated successfully.',
@@ -90,15 +105,31 @@ class UserController extends Controller
     // Elimina logicamente al usuario.
     public function destroy(
         Request $request,
-        User $user,
+        int $user,
         UserManagementService $userManagementService,
     ): JsonResponse {
-        $user->load('roles');
-        $userManagementService->softDelete($user);
+        /** @var User $actor */
+        $actor = $request->user();
+        $targetUser = User::withTrashed()->find($user);
+
+        if (! $targetUser instanceof User) {
+            return $this->notFoundResponse('User not found.');
+        }
+
+        if ($actor->cannot('delete', $targetUser)) {
+            return $this->forbiddenResponse('This action is unauthorized.');
+        }
+
+        if ($targetUser->trashed()) {
+            return $this->conflictResponse('User is already deleted.');
+        }
+
+        $targetUser->load('roles');
+        $userManagementService->softDelete($actor, $targetUser);
 
         return response()->json([
             'message' => 'User deleted successfully.',
-            'data' => new UserResource($user),
+            'data' => new UserResource($targetUser),
             'status' => 200,
         ], 200);
     }
@@ -118,10 +149,14 @@ class UserController extends Controller
         }
 
         if ($actor->cannot('restore', $targetUser)) {
-            return $this->forbiddenResponse('You are not allowed to restore this user.');
+            return $this->forbiddenResponse('This action is unauthorized.');
         }
 
-        $restoredUser = $userManagementService->restore($user);
+        if (! $targetUser->trashed()) {
+            return $this->conflictResponse('User is already restored.');
+        }
+
+        $restoredUser = $userManagementService->restore($actor, $user);
 
         return response()->json([
             'message' => 'User restored successfully.',
@@ -133,17 +168,30 @@ class UserController extends Controller
     // Activa acceso del usuario en el sistema.
     public function activate(
         Request $request,
-        User $user,
+        int $user,
         UserManagementService $userManagementService,
     ): JsonResponse {
         /** @var User $actor */
         $actor = $request->user();
+        $targetUser = User::withTrashed()->find($user);
 
-        if ($actor->cannot('activate', $user)) {
-            return $this->forbiddenResponse('You are not allowed to activate this user.');
+        if (! $targetUser instanceof User) {
+            return $this->notFoundResponse('User not found.');
         }
 
-        $activatedUser = $userManagementService->activate($user);
+        if ($actor->cannot('activate', $targetUser)) {
+            return $this->forbiddenResponse('This action is unauthorized.');
+        }
+
+        if ($targetUser->trashed()) {
+            return $this->conflictResponse('Deleted users cannot be activated.');
+        }
+
+        if ($targetUser->is_active) {
+            return $this->conflictResponse('User is already active.');
+        }
+
+        $activatedUser = $userManagementService->activate($actor, $targetUser);
 
         return response()->json([
             'message' => 'User activated successfully.',
@@ -155,17 +203,30 @@ class UserController extends Controller
     // Desactiva acceso del usuario sin eliminarlo.
     public function deactivate(
         Request $request,
-        User $user,
+        int $user,
         UserManagementService $userManagementService,
     ): JsonResponse {
         /** @var User $actor */
         $actor = $request->user();
+        $targetUser = User::withTrashed()->find($user);
 
-        if ($actor->cannot('deactivate', $user)) {
-            return $this->forbiddenResponse('You are not allowed to deactivate this user.');
+        if (! $targetUser instanceof User) {
+            return $this->notFoundResponse('User not found.');
         }
 
-        $deactivatedUser = $userManagementService->deactivate($user);
+        if ($actor->cannot('deactivate', $targetUser)) {
+            return $this->forbiddenResponse('This action is unauthorized.');
+        }
+
+        if ($targetUser->trashed()) {
+            return $this->conflictResponse('Deleted users cannot be deactivated.');
+        }
+
+        if (! $targetUser->is_active) {
+            return $this->conflictResponse('User is already inactive.');
+        }
+
+        $deactivatedUser = $userManagementService->deactivate($actor, $targetUser);
 
         return response()->json([
             'message' => 'User deactivated successfully.',
@@ -207,6 +268,7 @@ class UserController extends Controller
         }
 
         $updatedUser = $userManagementService->syncRoles(
+            $actor,
             $user,
             $request->validated('roles'),
         );
