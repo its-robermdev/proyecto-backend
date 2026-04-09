@@ -44,22 +44,37 @@ class EventModeratorController extends Controller
     // Asigna un usuario moderador al evento.
     public function store(
         StoreEventModeratorRequest $request,
-        Event $event,
+        int $event,
         EventModeratorService $eventModeratorService,
     ): JsonResponse {
-        if (! Gate::allows('assignModerators', $event)) {
+        $targetEvent = Event::find($event);
+
+        if (! $targetEvent instanceof Event) {
+            return $this->notFoundResponse('Event not found.');
+        }
+
+        if (! Gate::allows('assignModerators', $targetEvent)) {
             return $this->forbiddenResponse('This action is unauthorized.');
         }
 
+        $moderatorId = (int) $request->validated('user_id');
+        $isAlreadyAssigned = $targetEvent->moderators()
+            ->where('users.id', $moderatorId)
+            ->exists();
+
+        if ($isAlreadyAssigned) {
+            return $this->conflictResponse('Moderator is already assigned to this event.');
+        }
+
         $assignedModerator = $eventModeratorService->assign(
-            $event,
-            (int) $request->validated('user_id'),
+            $targetEvent,
+            $moderatorId,
         );
 
         return response()->json([
             'message' => 'Moderator assigned to event successfully.',
             'data' => [
-                'event' => new EventResource($event),
+                'event' => new EventResource($targetEvent),
                 'moderator' => new UserResource($assignedModerator),
             ],
             'status' => 201,
@@ -69,20 +84,40 @@ class EventModeratorController extends Controller
     // Remueve la asignacion de moderador para un evento.
     public function destroy(
         Request $request,
-        Event $event,
-        User $user,
+        int $event,
+        int $user,
         EventModeratorService $eventModeratorService,
     ): JsonResponse {
-        if (! Gate::allows('assignModerators', $event)) {
+        $targetEvent = Event::find($event);
+
+        if (! $targetEvent instanceof Event) {
+            return $this->notFoundResponse('Event not found.');
+        }
+
+        if (! Gate::allows('assignModerators', $targetEvent)) {
             return $this->forbiddenResponse('This action is unauthorized.');
         }
 
-        $user->load('roles');
-        $eventModeratorService->remove($event, $user);
+        $targetModerator = User::find($user);
+
+        if (! $targetModerator instanceof User) {
+            return $this->notFoundResponse('Moderator not found for this event.');
+        }
+
+        $isAssignedModerator = $targetEvent->moderators()
+            ->where('users.id', $targetModerator->id)
+            ->exists();
+
+        if (! $isAssignedModerator) {
+            return $this->notFoundResponse('Moderator not found for this event.');
+        }
+
+        $targetModerator->load('roles');
+        $eventModeratorService->remove($targetEvent, $targetModerator);
 
         return response()->json([
             'message' => 'Moderator removed from event successfully.',
-            'data' => new UserResource($user),
+            'data' => new UserResource($targetModerator),
             'status' => 200,
         ], 200);
     }
