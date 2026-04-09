@@ -55,18 +55,23 @@ class SubmissionController extends Controller
     }
 
     // Devuelve detalle de una submission si el usuario puede revisarla.
-    public function show(Request $request, Submission $submission): JsonResponse
+    public function show(Request $request, int $submission): JsonResponse
     {
         /** @var User $user */
         $user = $request->user();
+        $targetSubmission = Submission::withTrashed()->find($submission);
 
-        if ($user->cannot('view', $submission)) {
+        if (! $targetSubmission instanceof Submission || $targetSubmission->trashed()) {
+            return $this->notFoundResponse('Submission not found.');
+        }
+
+        if ($user->cannot('view', $targetSubmission)) {
             return $this->notFoundResponse('Submission not found.');
         }
 
         return response()->json([
             'message' => 'Submission retrieved successfully.',
-            'data' => new SubmissionResource($submission->load(['event', 'members', 'reviewer'])),
+            'data' => new SubmissionResource($targetSubmission->load(['event', 'members', 'reviewer'])),
             'status' => 200,
         ], 200);
     }
