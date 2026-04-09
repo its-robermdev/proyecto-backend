@@ -4,7 +4,7 @@ namespace App\Policies;
 
 use App\Models\Event;
 use App\Models\User;
-use Database\Seeders\PermissionCatalog;
+use App\Support\PermissionCatalog;
 
 class EventPolicy
 {

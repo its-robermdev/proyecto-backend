@@ -12,10 +12,10 @@ class EventLifecycleService
      */
     private array $allowedTransitions = [
         'draft' => ['published', 'cancelled', 'archived'],
-        'published' => ['closed', 'cancelled', 'archived'],
+        'published' => ['closed', 'cancelled', 'archived', 'draft'],
         'closed' => ['archived'],
-        'cancelled' => ['archived'],
-        'archived' => [],
+        'cancelled' => ['archived', 'draft'],
+        'archived' => ['published', 'draft'],
     ];
 
     // Aplica transición de estado validando el diagrama permitido.

@@ -28,4 +28,13 @@ abstract class Controller extends BaseController
             'status' => 404,
         ], 404);
     }
+
+    protected function conflictResponse(string $message): JsonResponse
+    {
+        return response()->json([
+            'message' => $message,
+            'data' => null,
+            'status' => 409,
+        ], 409);
+    }
 }

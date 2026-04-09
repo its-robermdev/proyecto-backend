@@ -8,7 +8,7 @@ use App\Models\Event;
 use App\Models\Submission;
 use App\Models\User;
 use App\Services\SubmitFormService;
-use Database\Seeders\PermissionCatalog;
+use App\Support\PermissionCatalog;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;

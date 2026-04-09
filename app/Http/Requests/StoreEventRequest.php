@@ -21,7 +21,7 @@ class StoreEventRequest extends FormRequest
         // Reglas mínimas para crear un evento válido en draft.
         return [
             'title' => ['required', 'string', 'max:255'],
-            'slug' => ['required', 'string', 'max:255', Rule::unique('events', 'slug')],
+            'slug' => ['required', 'string', 'max:50', Rule::unique('events', 'slug')],
             'type' => ['required', Rule::in(['hackathon', 'bootcamp', 'workshop', 'conference', 'job_fair', 'other'])],
             'modality' => ['required', Rule::in(['online', 'in-person', 'hybrid'])],
             'description' => ['required', 'string'],

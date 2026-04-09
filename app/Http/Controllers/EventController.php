@@ -7,7 +7,7 @@ use App\Http\Requests\UpdateEventRequest;
 use App\Http\Resources\EventResource;
 use App\Models\Event;
 use App\Models\User;
-use Database\Seeders\PermissionCatalog;
+use App\Support\PermissionCatalog;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
@@ -17,24 +17,28 @@ class EventController extends Controller
 {
     public function __construct()
     {
-        $this->authorizeResource(Event::class, 'event', ['except' => ['show']]);
+        $this->authorizeResource(Event::class, 'event', ['except' => ['show', 'destroy']]);
     }
 
     // Lista eventos segun visibilidad publica o permisos del usuario autenticado.
     public function index(Request $request): AnonymousResourceCollection
     {
-        $query = Event::query()->latest();
+        $query = Event::query()
+            ->with('creator:id,name');
         $user = $request->user();
 
         if ($user instanceof User && $user->hasPermissionTo(PermissionCatalog::ALL['view_any_event'])) {
             // Global visibility keeps the full list.
+            $query->latest();
         } elseif ($user instanceof User && $user->hasPermissionTo(PermissionCatalog::ALL['view_own_event'])) {
             $query->where(function ($query) use ($user): void {
                 $query->where('status', 'published')
                     ->orWhereHas('moderators', fn ($moderatorQuery) => $moderatorQuery->where('users.id', $user->id));
             });
+            $query->orderBy('start_date');
         } else {
-            $query->where('status', 'published');
+            $query->where('status', 'published')
+                ->orderBy('start_date');
         }
 
         return EventResource::collection($query->paginate())
@@ -56,7 +60,7 @@ class EventController extends Controller
             'status' => 'draft',
             'form_is_active' => false,
             'created_by' => $user->id,
-        ]);
+        ])->load('creator:id,name');
 
         return response()->json([
             'message' => 'Event created successfully.',
@@ -72,6 +76,8 @@ class EventController extends Controller
             return $this->notFoundResponse('Event not found.');
         }
 
+        $event->loadMissing('creator:id,name');
+
         return response()->json([
             'message' => 'Event retrieved successfully.',
             'data' => new EventResource($event),
@@ -83,22 +89,41 @@ class EventController extends Controller
     public function update(UpdateEventRequest $request, Event $event): JsonResponse
     {
         $event->update($request->validated());
+        $event->refresh()->load('creator:id,name');
 
         return response()->json([
             'message' => 'Event updated successfully.',
-            'data' => new EventResource($event->refresh()),
+            'data' => new EventResource($event),
             'status' => 200,
         ], 200);
     }
 
     // Soft delete del evento.
-    public function destroy(Request $request, Event $event): JsonResponse
+    public function destroy(Request $request, int $event): JsonResponse
     {
-        $event->delete();
+        /** @var User $actor */
+        $actor = $request->user();
+        $targetEvent = Event::withTrashed()
+            ->with('creator:id,name')
+            ->find($event);
+
+        if (! $targetEvent instanceof Event) {
+            return $this->notFoundResponse('Event not found.');
+        }
+
+        if ($actor->cannot('delete', $targetEvent)) {
+            return $this->forbiddenResponse('You are not allowed to delete this event.');
+        }
+
+        if ($targetEvent->trashed()) {
+            return $this->conflictResponse('This event is already hidden.');
+        }
+
+        $targetEvent->delete();
 
         return response()->json([
             'message' => 'Event deleted successfully.',
-            'data' => new EventResource($event),
+            'data' => new EventResource($targetEvent),
             'status' => 200,
         ], 200);
     }
@@ -118,11 +143,16 @@ class EventController extends Controller
             return $this->forbiddenResponse('You are not allowed to restore this event.');
         }
 
+        if (! $targetEvent->trashed()) {
+            return $this->conflictResponse('This event is already visible.');
+        }
+
         $targetEvent->restore();
+        $targetEvent->refresh()->load('creator:id,name');
 
         return response()->json([
             'message' => 'Event restored successfully.',
-            'data' => new EventResource($targetEvent->refresh()),
+            'data' => new EventResource($targetEvent),
             'status' => 200,
         ], 200);
     }

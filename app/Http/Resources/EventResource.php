@@ -29,7 +29,7 @@ class EventResource extends JsonResource
             'allows_teams' => $this->allows_teams,
             'status' => $this->status,
             'form_is_active' => $this->form_is_active,
-            'created_by' => $this->created_by,
+            'created_by' => $this->creator?->name,
             'created_at' => $this->created_at?->toISOString(),
             'updated_at' => $this->updated_at?->toISOString(),
         ];
