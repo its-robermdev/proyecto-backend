@@ -35,7 +35,7 @@ class EventApiTest extends TestCase
             ->assertJsonFragment(['id' => $draft->id]);
     }
 
-    public function test_moderador_solo_ve_publicados_y_eventos_asignados(): void
+    public function test_moderador_en_listado_solo_ve_eventos_asignados(): void
     {
         $moderator = $this->createModerator();
         $published = $this->createPublishedEvent();
@@ -47,9 +47,9 @@ class EventApiTest extends TestCase
 
         $this->getJson('/api/v1/events')
             ->assertOk()
-            ->assertJsonCount(2, 'data')
-            ->assertJsonFragment(['id' => $published->id])
+            ->assertJsonCount(1, 'data')
             ->assertJsonFragment(['id' => $assignedDraft->id])
+            ->assertJsonMissing(['id' => $published->id])
             ->assertJsonMissing(['id' => $hiddenDraft->id]);
     }
 
@@ -170,8 +170,8 @@ class EventApiTest extends TestCase
         $this->actingAsApi($admin);
 
         $this->patchJson("/api/v1/events/{$event->id}", [
-            'end_date' => now()->addDays(1)->toISOString(),
-            'registration_deadline' => now()->addDays(20)->toISOString(),
+            'end_date' => $event->start_date->copy()->subDay()->toISOString(),
+            'registration_deadline' => $event->start_date->copy()->addDay()->toISOString(),
         ])->assertUnprocessable()
             ->assertJsonValidationErrors(['end_date', 'registration_deadline']);
     }
