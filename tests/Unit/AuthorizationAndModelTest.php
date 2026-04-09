@@ -54,14 +54,14 @@ class AuthorizationAndModelTest extends TestCase
         $this->assertTrue(app(UserPolicy::class)->update($moderator, $moderator));
     }
 
-    public function test_user_policy_niega_operaciones_sobre_admin_objetivo(): void
+    public function test_user_policy_permite_operaciones_sobre_admin_objetivo(): void
     {
         $admin = $this->createAdmin();
         $otherAdmin = $this->createAdmin();
         $policy = app(UserPolicy::class);
 
-        $this->assertFalse($policy->delete($admin, $otherAdmin));
-        $this->assertFalse($policy->syncRoles($admin, $otherAdmin));
+        $this->assertTrue($policy->delete($admin, $otherAdmin));
+        $this->assertTrue($policy->syncRoles($admin, $otherAdmin));
     }
 
     public function test_event_available_spots_count_descuenta_solo_pending_y_approved(): void

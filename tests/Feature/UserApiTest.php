@@ -101,7 +101,7 @@ class UserApiTest extends TestCase
             ->assertJsonPath('data.is_active', false);
     }
 
-    public function test_actualizar_usuario_admin_falla(): void
+    public function test_actualizar_usuario_admin_funciona(): void
     {
         $admin = $this->createAdmin();
         $otherAdmin = $this->createAdmin(['email' => 'otro-admin@example.com']);
@@ -109,7 +109,8 @@ class UserApiTest extends TestCase
 
         $this->patchJson("/api/v1/users/{$otherAdmin->id}", [
             'name' => 'No permitido',
-        ])->assertForbidden();
+        ])->assertOk()
+            ->assertJsonPath('data.name', 'No permitido');
     }
 
     public function test_admin_puede_eliminar_y_restaurar_usuario(): void
@@ -128,14 +129,14 @@ class UserApiTest extends TestCase
             ->assertJsonPath('data.deleted_at', null);
     }
 
-    public function test_no_se_puede_eliminar_usuario_admin(): void
+    public function test_se_puede_eliminar_usuario_admin(): void
     {
         $admin = $this->createAdmin();
         $otherAdmin = $this->createAdmin();
         $this->actingAsApi($admin);
 
         $this->deleteJson("/api/v1/users/{$otherAdmin->id}")
-            ->assertForbidden();
+            ->assertOk();
     }
 
     public function test_admin_puede_activar_y_desactivar_usuario(): void
@@ -169,7 +170,7 @@ class UserApiTest extends TestCase
             ->assertJsonFragment(['moderator']);
     }
 
-    public function test_sincronizar_roles_valida_entrada_y_bloquea_admins(): void
+    public function test_sincronizar_roles_valida_entrada_y_permite_admins(): void
     {
         $admin = $this->createAdmin();
         $otherAdmin = $this->createAdmin();
@@ -183,6 +184,7 @@ class UserApiTest extends TestCase
 
         $this->putJson("/api/v1/users/{$otherAdmin->id}/roles", [
             'roles' => ['moderator'],
-        ])->assertForbidden();
+        ])->assertOk()
+            ->assertJsonFragment(['moderator']);
     }
 }

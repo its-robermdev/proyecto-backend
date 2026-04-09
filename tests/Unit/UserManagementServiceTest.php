@@ -8,14 +8,14 @@ use Tests\TestCase;
 
 class UserManagementServiceTest extends TestCase
 {
-    public function test_update_managed_user_falla_sobre_admin(): void
+    public function test_update_managed_user_permite_actualizar_admin(): void
     {
-        $this->expectException(ValidationException::class);
-
         $actor = $this->createAdmin();
-        $targetAdmin = $this->createAdmin();
+        $targetAdmin = $this->createAdmin(['name' => 'Admin Antes']);
 
-        app(UserManagementService::class)->updateManagedUser($actor, $targetAdmin, ['name' => 'No']);
+        $updated = app(UserManagementService::class)->updateManagedUser($actor, $targetAdmin, ['name' => 'Admin Despues']);
+
+        $this->assertSame('Admin Despues', $updated->name);
     }
 
     public function test_soft_delete_y_restore_funcionan_en_usuario_gestionable(): void
