@@ -96,7 +96,7 @@ class EventApiTest extends TestCase
         $response->assertCreated()
             ->assertJsonPath('data.status', 'draft')
             ->assertJsonPath('data.form_is_active', false)
-            ->assertJsonPath('data.created_by', $admin->id);
+            ->assertJsonPath('data.created_by', $admin->name);
 
         $this->assertDatabaseHas('events', [
             'slug' => $payload['slug'],
