@@ -395,7 +395,9 @@ curl -X POST http://127.0.0.1:8000/api/v1/events/1/submissions \
     "submitted_by_name": "Participante C3",
     "participation_type": "individual",
     "form_answers": {
-      [...]
+      "portfolio_url": "https://example.com/portfolio",
+      "experience_level": "mid",
+      "motivation": "Quiero participar y aprender mucho."
     }
   }'
 ```
@@ -524,7 +526,7 @@ Proyecto académico funcional, orientado a evaluación y defensa técnica, con u
 
 - Roberto Morán | @its-robermdev
 - Chris Marroquín | @ChrisM2309
-- Óscar Pleites
+- Óscar Pleites | @0splei
 
 ## Licencia
 
