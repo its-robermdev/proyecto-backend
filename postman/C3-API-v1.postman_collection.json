@@ -30,6 +30,10 @@
               {
                 "key": "Content-Type",
                 "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
               }
             ],
             "body": {
@@ -54,7 +58,13 @@
               ]
             },
             "method": "POST",
-            "url": "{{base_url}}/auth/logout"
+            "url": "{{base_url}}/auth/logout",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ]
           }
         },
         {
@@ -71,7 +81,13 @@
               ]
             },
             "method": "GET",
-            "url": "{{base_url}}/auth/profile"
+            "url": "{{base_url}}/auth/profile",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ]
           }
         }
       ]
@@ -84,21 +100,39 @@
           "request": {
             "method": "GET",
             "url": "{{base_url}}/events",
-            "description": "Publico: eventos publicados."
+            "description": "Publico: eventos publicados.",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ]
           }
         },
         {
           "name": "Show Event",
           "request": {
             "method": "GET",
-            "url": "{{base_url}}/events/{{event_id}}"
+            "url": "{{base_url}}/events/{{event_id}}",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ]
           }
         },
         {
           "name": "Get Event Form",
           "request": {
             "method": "GET",
-            "url": "{{base_url}}/events/{{event_id}}/form"
+            "url": "{{base_url}}/events/{{event_id}}/form",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ]
           }
         }
       ]
@@ -136,6 +170,10 @@
               {
                 "key": "Content-Type",
                 "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
               }
             ],
             "body": {
@@ -163,6 +201,10 @@
               {
                 "key": "Content-Type",
                 "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
               }
             ],
             "body": {
@@ -186,7 +228,13 @@
               ]
             },
             "method": "DELETE",
-            "url": "{{base_url}}/events/{{event_id}}"
+            "url": "{{base_url}}/events/{{event_id}}",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ]
           }
         },
         {
@@ -203,7 +251,13 @@
               ]
             },
             "method": "PUT",
-            "url": "{{base_url}}/events/{{event_id}}/restore"
+            "url": "{{base_url}}/events/{{event_id}}/restore",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ]
           }
         },
         {
@@ -223,6 +277,10 @@
             "header": [
               {
                 "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
                 "value": "application/json"
               }
             ],
@@ -256,6 +314,10 @@
               {
                 "key": "Content-Type",
                 "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
               }
             ],
             "body": {
@@ -279,7 +341,13 @@
               ]
             },
             "method": "POST",
-            "url": "{{base_url}}/events/{{event_id}}/form/validation"
+            "url": "{{base_url}}/events/{{event_id}}/form/validation",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ]
           }
         },
         {
@@ -296,7 +364,13 @@
               ]
             },
             "method": "PUT",
-            "url": "{{base_url}}/events/{{event_id}}/form/activation"
+            "url": "{{base_url}}/events/{{event_id}}/form/activation",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ]
           }
         },
         {
@@ -313,7 +387,13 @@
               ]
             },
             "method": "DELETE",
-            "url": "{{base_url}}/events/{{event_id}}/form/activation"
+            "url": "{{base_url}}/events/{{event_id}}/form/activation",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ]
           }
         }
       ]
@@ -335,7 +415,13 @@
               ]
             },
             "method": "GET",
-            "url": "{{base_url}}/events/{{event_id}}/moderators"
+            "url": "{{base_url}}/events/{{event_id}}/moderators",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ]
           }
         },
         {
@@ -355,6 +441,10 @@
             "header": [
               {
                 "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
                 "value": "application/json"
               }
             ],
@@ -379,7 +469,13 @@
               ]
             },
             "method": "DELETE",
-            "url": "{{base_url}}/events/{{event_id}}/moderators/{{moderator_user_id}}"
+            "url": "{{base_url}}/events/{{event_id}}/moderators/{{moderator_user_id}}",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ]
           }
         }
       ]
@@ -407,6 +503,10 @@
               {
                 "key": "Content-Type",
                 "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
               }
             ],
             "body": {
@@ -430,7 +530,13 @@
               ]
             },
             "method": "GET",
-            "url": "{{base_url}}/events/{{event_id}}/submissions"
+            "url": "{{base_url}}/events/{{event_id}}/submissions",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ]
           }
         },
         {
@@ -447,7 +553,13 @@
               ]
             },
             "method": "GET",
-            "url": "{{base_url}}/submissions/{{submission_id}}"
+            "url": "{{base_url}}/submissions/{{submission_id}}",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ]
           }
         },
         {
@@ -464,7 +576,13 @@
               ]
             },
             "method": "DELETE",
-            "url": "{{base_url}}/submissions/{{submission_id}}"
+            "url": "{{base_url}}/submissions/{{submission_id}}",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ]
           }
         },
         {
@@ -481,7 +599,13 @@
               ]
             },
             "method": "PUT",
-            "url": "{{base_url}}/submissions/{{submission_id}}/restore"
+            "url": "{{base_url}}/submissions/{{submission_id}}/restore",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ]
           }
         },
         {
@@ -501,6 +625,10 @@
             "header": [
               {
                 "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
                 "value": "application/json"
               }
             ],
@@ -530,7 +658,13 @@
               ]
             },
             "method": "GET",
-            "url": "{{base_url}}/users"
+            "url": "{{base_url}}/users",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ]
           }
         },
         {
@@ -563,6 +697,10 @@
               {
                 "key": "Content-Type",
                 "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
               }
             ],
             "body": {
@@ -586,7 +724,13 @@
               ]
             },
             "method": "GET",
-            "url": "{{base_url}}/users/{{user_id}}"
+            "url": "{{base_url}}/users/{{user_id}}",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ]
           }
         },
         {
@@ -606,6 +750,10 @@
             "header": [
               {
                 "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
                 "value": "application/json"
               }
             ],
@@ -630,7 +778,13 @@
               ]
             },
             "method": "DELETE",
-            "url": "{{base_url}}/users/{{user_id}}"
+            "url": "{{base_url}}/users/{{user_id}}",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ]
           }
         },
         {
@@ -647,7 +801,13 @@
               ]
             },
             "method": "PUT",
-            "url": "{{base_url}}/users/{{user_id}}/restore"
+            "url": "{{base_url}}/users/{{user_id}}/restore",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ]
           }
         },
         {
@@ -664,7 +824,13 @@
               ]
             },
             "method": "PUT",
-            "url": "{{base_url}}/users/{{user_id}}/activation"
+            "url": "{{base_url}}/users/{{user_id}}/activation",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ]
           }
         },
         {
@@ -681,7 +847,13 @@
               ]
             },
             "method": "DELETE",
-            "url": "{{base_url}}/users/{{user_id}}/activation"
+            "url": "{{base_url}}/users/{{user_id}}/activation",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ]
           }
         },
         {
@@ -698,7 +870,13 @@
               ]
             },
             "method": "GET",
-            "url": "{{base_url}}/users/{{user_id}}/roles"
+            "url": "{{base_url}}/users/{{user_id}}/roles",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ]
           }
         },
         {
@@ -718,6 +896,10 @@
             "header": [
               {
                 "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
                 "value": "application/json"
               }
             ],
@@ -758,3 +940,4 @@
     }
   ]
 }
+
