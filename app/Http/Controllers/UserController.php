@@ -23,10 +23,12 @@ class UserController extends Controller
     // Lista usuarios para administracion interna.
     public function index(Request $request): AnonymousResourceCollection
     {
-        $users = User::query()
-            ->with('roles')
-            ->latest()
-            ->paginate();
+        /** @var User $actor */
+        $actor = $request->user();
+
+        $users = $actor->is_root
+            ? User::query()->with('roles')->latest()->paginate()
+            : User::role('moderator')->with('roles')->latest()->paginate();
 
         return UserResource::collection($users)
             ->additional([
